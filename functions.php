@@ -1,7 +1,7 @@
 <?php 
 
 // sets the time zone and establishes the "day" as 12 hours to prevent midnight problem
-date_default_timezone_set("america/chicago");
+date_default_timezone_set("america/New_York");
 $today = date("U")-60*60*12;
 $dateofride = date("Ymd", mktime(date("H")-12, date("i"), date("s"), date("m"), date("d"), date("Y")))."000000";
 
@@ -183,10 +183,15 @@ $cSql = "SELECT SUM(riders) as total FROM rides WHERE ridedate = ".$dateofride."
 
 /// Action Functions
 
-function prerideAssign($num,$car) {
-    $qry = "UPDATE rides SET car = '" . $car . "', status = 'waiting' 'WHERE num='" . $num . "'";
-    mysql_query($qry) or die('UPDATE failed: ' . mysql_error());}
+function prerideAssign($num,$precar) {
+    $qry = "UPDATE rides SET precar = '" . $precar . "', status = 'waiting' WHERE num='" . $num . "'";
+    mysql_query($qry) or die('UPDATE failed: ' . mysql_error() . " \n " . ' $num = ' . $num . " \n " . ' $precar = ' . $precar . " \n " . ' $qry = ' . $qry);}
 
+function assignedPreride($num){
+    $qry = "SELECT precar FROM rides WHERE num='" . $num . "'";
+    $print = mysql_query($qry) or die('UPDATE failed: ' . mysql_error() . " \n " . ' $num = ' . $num . " \n " . ' $qry = ' . $qry);
+    return mysql_result($print,0);
+}
 
 
 function rideAssign($num,$car) {

@@ -38,6 +38,7 @@ class Ride {
     var $dropoff;
     var $location;
     var $clothes;
+    var $precar;
     var $car;
     var $notes;
     var $riders;
@@ -57,6 +58,7 @@ class Ride {
         $this->dropoff = $attribs['dropoff'];
         $this->location = $attribs['location'];
         $this->clothes = $attribs['clothes'];
+	$this->precar = $attribs['precar'];
         $this->car = $attribs['car'];
         $this->notes = $attribs['notes'];
         $this->riders = $attribs['riders'];

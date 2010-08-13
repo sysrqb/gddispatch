@@ -21,7 +21,7 @@ switch($_GET["action"]) {
     	header("location: ./riding.php?num=".$_POST["num"]);
     	break;
     case "preassign":
-    	prerideAssign($_POST["num"],$_POST["car"]);
+    	prerideAssign($_POST["num"],$_POST["precar"]);
     	header("location: ./waiting.php?num=".$_POST["num"]);
     	break;
     case "split":
