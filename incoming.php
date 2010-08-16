@@ -19,7 +19,7 @@
 			<p><label class="left">Where are you staying?</label>
 			   <input class="field" name="dropoff" /></p>
 			<p><label class="left">If they live in apartments:</label>
-     			   <select name="location" class="combo">
+     			   <select name="aploc" class="combo">
                 		<option value="Null"> <b>Select an Apartment:</b> </option>
                 		<option value="CO"> Charter Oak </option>
                      		<option value="HTA"> Hill Top </option>
@@ -34,7 +34,7 @@
 				<option value="NWA"> Northwood </option>
                      		<option value="Other"> Other </option></select></p>
 			<p><label class="left">If they live in a dorm:</label>
-     			   <select name="location" class="combo">
+     			   <select name="dormloc" class="combo">
                 		<option value="Null"> <b>Select a Dorm:</b> </option>
                 		<option value="BS"> Busby Suites </option>
                      		<option value="E"> East </option>

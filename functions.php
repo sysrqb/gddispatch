@@ -1,7 +1,7 @@
 <?php 
 
 // sets the time zone and establishes the "day" as 12 hours to prevent midnight problem
-date_default_timezone_set("america/New_York");
+//date_default_timezone_set("america/New_York");
 $today = date("U")-60*60*12;
 $dateofride = date("Ymd", mktime(date("H")-12, date("i"), date("s"), date("m"), date("d"), date("Y")))."000000";
 
@@ -172,6 +172,13 @@ function rowColor($i) {
 
 /// Header functions
 
+function checkRideCount($type) {
+	global $dateofride;
+
+	$cSql = "SELECT * FROM rides WHERE ridedate = ".$dateofride." AND status = '".$type."'";
+	return mysql_num_rows(mysql_query($cSql)); //return the number of current rides for appropiate status
+	}
+
 function checkCount($type) {
 global $dateofride;
 
@@ -259,14 +266,15 @@ function rideEdit($num) {
 function rideAdd() {
 global $dateofride;
 
-    $qry = "INSERT INTO rides (name,cell,riders,pickup,dropoff,location,clothes,notes,status,ridedate,timetaken) VALUES 
+    $qry = "INSERT INTO rides (name,cell,riders,pickup,dropoff,aploc,dormloc,clothes,notes,status,ridedate,timetaken) VALUES 
     ('".
     $_POST["name"]."','".
     $_POST["cell1"].$_POST["cell2"].$_POST["cell3"]."','".
     $_POST["riders"]."','".
     $_POST["pickup"]."','".
     $_POST["dropoff"]."','".
-    $_POST["location"]."','".
+    $_POST["aploc"]."','".
+    $_POST["dormloc"]."','".
     $_POST["clothes"]."','".
     $_POST["notes"]."',
     'waiting','".

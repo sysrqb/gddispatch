@@ -42,12 +42,7 @@
 			   <input class="field" name="pickup" value="<?php echo $rPickup; ?>" /></p>
 			<p><label class="left">Where are you staying?</label>
 			   <input class="field" name="dropoff" value="<?php echo $rDropoff; ?>" /></p>
-			<p><label class="left">Do you live in Bryan or CS?</label>
-     			   <select name="bcs" class="combo">
-                		<option value="CS"> College Station </option>
-                     		<option value="B"> Bryan </option>
-                     		<option value="Other"> Other </option></select></p>
-			<p><label class="left">If they live in apartments:</label>
+     			   <p><label class="left">If they live in apartments:</label>
      			   <select name="aploc" class="combo">
                 		<option value="Null"> <b>Select an Apartment:</b> </option>
                 		<option value="CO"> Charter Oak </option>
