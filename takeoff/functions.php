@@ -1,67 +1,100 @@
 <?php 
 // Display Functions
+
+/*
+Define two variables:
+gtime defines the current time GMT, in Year-Month-Day Hour:Minutes:Seconds format
+time defines the current time in the currect timezone, in Year-Month-Day Hour:Minutes:Seconds format
+*/
 $gtime = gmdate('Y-m-d H:i:s');
 $time = time('Y-m-d H:i:s');
 
-function gmttoest($gmttime){
-	$tzdiff = $gmttime->diff($time);
-	if($tzdiff == 
-
-function minFromNow($inputtime) {
-	
-	$mindiff = date("U") - strtotime($inputtime);
-	$mindiff = round($mindiff/60,0);
-	return $mindiff;
+//Used to translate a time in GMT to EST+5
+function gmttoest(){
+	$gm = $gtime->format("H");//What hour is it GMT?
+	if($gm -lt 05){//If it is before 05:00 then it is still yesterday EST and thus between 18:00...23:00
+		$gm=24+$gm;//add 24 hours to GMT time to account for difference in day
+		$diff = $gm-($time->format("H"));//subtract the hour in GMT and the hour in EST
+		return new DateTime($time->format('Y-m-d') . ' '  . $diff . ':' . $time->format('i:s'));//return a type of DateTime with format Y-m-d H:i:s
+	}
+	else{
+		$diff = $gmttime->diff($time);//if EST and GMT are still in the same day, calculate the difference between the two times
+		$diff = $diff->format('%H');//save the difference between the two hours
+		return new DateTime($time->format('Y-m-d') . ' '  . $diff . ':' . $time->format('i:s'));//return a type of DateTime with format Y-m-d H:i:s
+	}
 }
+
+//Finds the minutes between the $inputtime and the current time
+function minFromNow($inputtime) {
+	$diff = $inputtime->diff(gmttoest());//Find diff between input time and current time GMT
+	return (diff->format('%H:$I'));//return in form H:I
+}
+
+//Creates the preassing button
 function tblBtnPreAssign($ride) {
 	echo '<td class="btn">';
 	echo '<button class="assign" onClick="highlight(\'row'.$ride.'\');assignride(\'preassign.php?num='.$ride.'\',\'assign'.$ride.'\')">PreAssign</button>';
 	echo '</td>'."\r";
 	}
-
+//Creates the assign button
 function tblBtnAssign($ride) {
 	echo '<td class="btn">';
 	echo '<button class="assign" onClick="highlight(\'row'.$ride.'\');assignride(\'assign.php?num='.$ride.'\',\'assign'.$ride.'\')">Assign</button>';
 	echo '</td>'."\r";
 	}
+
+//Creates the Split button
 function tblBtnSplit($ride) {
 	echo '<td class="btn">';
 	echo '<button class="split" onClick="highlight(\'row'.$ride.'\');assignride(\'split.php?num='.$ride.'\',\'assign'.$ride.'\')">Split</button>';
 	echo '</td>'."\r";
 	}
+
+//Creates the Edit button
 function tblBtnEdit($ride,$pg) {
 	echo '<td class="btn">';
 	echo '<button class="edit" onClick="window.location=\'edit.php?pg='.$pg.'&num='.$ride.'\'">Edit</button>';
 	echo '</td>'."\r";
 	}
+
+//Creates the Done button
 function tblBtnDone($ride) {
 	echo '<td class="btn">';
 	echo '<button class="done" onClick="window.location=\'actions.php?num='.$ride.'&action=done\'">Done</button>';
 	echo '</td>'."\r";
 	}
+
+//Creates the Cancel button
 function tblBtnCancel($ride) {
 	echo '<td class="btn">';
 	echo '<button class="cancel" onClick="window.location=\'actions.php?num='.$ride.'&action=cancel\'">Cancel</button>';
 	echo '</td>'."\r";
 	}
+
+//Creates the Undo button
 function tblBtnUndo($ride) {
 	echo '<td class="btn">';
 	echo '<button class="undo" onClick="window.location=\'actions.php?num='.$ride.'&action=undo\'">Undo</button>';
 	echo '</td>'."\r";
 	}
 
+//Prints the ride info
 function tblRideInfo($info) {
 	echo '<td>';
 	echo $info;
 	echo '</td>'."\r";
 	}
+
+//Marks care an finished??
 function tblDoneCar($car) {
 	echo '<td>';
 	echo '<a href="done.php?car='.$car.'">'.$car.'</a>';
 	echo '</td>'."\r";
 	}
-function tblCell($cell,$ng) {
-	if ($ng=="ng") {
+
+//
+function tblCell($cell,$ps) {//$ps stands for pickup/status, the two input types for this function
+	if ($pickup=="ng") {
 		$cellnum = '-';}
 	else {
 		$cellnum = '('.substr($cell,0,3).') '.substr($cell,3,3).'-'.substr($cell,6,4);}
@@ -70,84 +103,97 @@ function tblCell($cell,$ng) {
 	echo $cellnum;
 	echo '</td>'."\r";
 	}
-function tblCalledIn($intime) {
-	$mindiff = date("U") - strtotime($intime);
-	$mindiff = round($mindiff/60,0);
-	
-	if ($mindiff<30) 
-		$tclass = 'short';
-	elseif ($mindiff<50) 
-		$tclass = 'med';
-	else 
-		$tclass = 'long';
-	
+
+//returns the amount of time between now and $intime. determines response time is considered short, medium, or long. returns difference.
+function tblCalledIn($intime){
+	$diff = $gmtime->diff($intime);//get difference between $intime and now
+	$diff = $diff->format("%H:%I");//format difference in hours:minutes format
+	$interval30 = new DateInterval('PT30M');//create a time interval of 30 minutes, used for comparison
+	$interval50 = new DateInterval('PT50M');//creates a time interval of 50 minutes, used for comparison
+	if($diff->format('%H') > $interval30->format('%H'){//compare the hours. if $diff has hours greater than 0, time long
+		$tclass = 'long';//time = long
+	}
+	elseif($diff->format('%I') < $interval30->format('%I'){//if hours aren't larger than 0 (which I hope they aren't), compare minutes. if diff is less than 30, time is short
+		$tclass = 'short';//time = short
+	}
+	elseif($diff->format('%I') < $interval50->format('%I'){//if time is not less than 30 minutes, maybe it's less than 50 minutes. if so, time is medium
+		$tclass = 'med';//time = med
+	}
+	else{
+		$tclass = 'long';//otherwise it's just been way too long
+	}
 	echo '<td><span class="'.$tclass.'">';
-	echo $mindiff;
+	echo $diff;
 	echo ' min</span></td>'."\r";
-	}
+}
+	
 
-function tblTimeWait($called,$assigned,$done,$status,$ng) {
-	if ($status=="cpmissed" || $status=="cancelled") {
-		$mindiff = strtotime($done) - strtotime($called);}
-	else {
-		$mindiff = strtotime($assigned) - strtotime($called);}
-	
-	$mindiff = round($mindiff/60,0);
-	
-	if ($mindiff<30) 
-		$tclass = 'short';
-	elseif ($mindiff<50) 
-		$tclass = 'med';
-	else 
-		$tclass = 'long';
-		
-	if ($ng=="ng") {
-		$mindiff = '-';
-		$tclass = 'circuit';}
-		
-	if ($mindiff<>"-"){
-		$mindiff = $mindiff.' min';}
-	
+//returns the total wait time. determines response time is considered short, medium, or long. returns difference.
+function tblTimeWait($called,$assigned,$done,$status,$pickup) {
+	if ($status=="missed" || $status=="cancelled"){
+		$diff = $called->diff($done);//get difference between the time the patron called in and the time the ride was cancelled 
+	}
+	else{
+		$diff = $called->diff($assigned);//get difference between the time the patron called in and the time the ride was assigned
+	}
+	$diff = $diff->format("%H:%I");//format difference in hours:minutes format
+	$interval30 = new DateInterval('PT30M');//create a time interval of 30 minutes, used for comparison
+	$interval50 = new DateInterval('PT50M');//creates a time interval of 50 minutes, used for comparison
+	if($diff->format('%H') > $interval30->format('%H'){//compare the hours. if $diff has hours greater than 0, time long
+		$tclass = 'long';//time = long
+	}
+	elseif($diff->format('%I') < $interval30->format('%I'){//if hours aren't larger than 0 (which I hope they aren't), compare minutes. if diff is less than 30, time is short
+		$tclass = 'short';//time = short
+	}
+	elseif($diff->format('%I') < $interval50->format('%I'){//if time is not less than 30 minutes, maybe it's less than 50 minutes. if so, time is medium
+		$tclass = 'med';//time = med
+	}
+	else{
+		$tclass = 'long';//otherwise it's just been way too long
+	}
 	echo '<td><span class="'.$tclass.'">';
-	echo $mindiff;	
-	echo '</span></td>'."\r";
-	}
+	echo $diff;
+	echo ' min</span></td>'."\r";
+}
 
-function tblTimeRode($done,$assigned,$status,$ng) {
-	if ($status=="cpmissed" || $status=="cancelled") {
-		$tclass = '';}
-	else {
-		$mindiff = strtotime($done) - strtotime($assigned);}
-	
-	$mindiff = round($mindiff/60,0);
-	
-	if ($mindiff<>"0") {
-		if ($mindiff<30) 
-			$tclass = 'short';
-		elseif ($mindiff<60) 
-			$tclass = 'med';
-		else 
-			$tclass = 'long';
+
+//returns the total wait time. determines response time is considered short, medium, or long. returns difference.
+function tblTimeRode($done,$assigned,$status,$pickup) {
+	if ($status=="missed" || $status=="cancelled"){
+		$tclass = '0';//well they never rode, did they?
+		$diff = '0';
 	}
-	else {$mindiff = '-';}
-	
-	if ($ng=="ng") {
-		$mindiff = '-';
-		$tclass = 'circuit';}
-		
-	if ($mindiff<>"-"){
-		$mindiff = $mindiff.' min';}
-	
+	else{
+		$diff = $done->diff($assigned);//get difference between the time the patron called in and the time the ride was assigned
+		$diff = $diff->format("%H:%I");//format difference in hours:minutes format
+		$interval30 = new DateInterval('PT30M');//create a time interval of 30 minutes, used for comparison
+		$interval50 = new DateInterval('PT50M');//creates a time interval of 50 minutes, used for comparison
+		if($diff->format('%H') > $interval30->format('%H'){//compare the hours. if $diff has hours greater than 0, time long
+			$tclass = 'long';//time = long
+		}
+		elseif($diff->format('%I') < $interval30->format('%I'){//if hours aren't larger than 0 (which I hope they aren't), compare minutes. if diff is less than 30, time is short
+			$tclass = 'short';//time = short
+		}
+		elseif($diff->format('%I') < $interval50->format('%I'){//if time is not less than 30 minutes, maybe it's less than 50 minutes. if so, time is medium
+			$tclass = 'med';//time = med
+		}
+		else{
+			$tclass = 'long';//otherwise it's just been way too long
+		}
+	}
 	echo '<td><span class="'.$tclass.'">';
-	echo $mindiff;
-	echo '</span></td>'."\r";
-	}
+	echo $diff;
+	echo ' min</span></td>'."\r";
+}
 
+//prints whether or not the patron has arrived home or if they are still intransit. if they have arrived, it states what time they were dropped off.
 function tblHome($tdone,$tstatus) {
-	if ($tstatus=="done") {
-		$athome = date("h:i",strtotime($tdone));}
-	else {
-		$athome = '-';}
+	if ($tstatus=="done") {//if the ride is done 
+		$athome = $tdone->format('H:i');//set the time it finished
+	}
+	else {//if not
+		$athome = '-';//null for now
+	}
 	
 	echo '<td>';
 	echo $athome;
@@ -155,15 +201,17 @@ function tblHome($tdone,$tstatus) {
 	
 	}
 
-
+//color the rows?
 function rowColor($i) {
 	if (fmod($i,2) == 0) {
-		$bgCol = 'white';}
+		$bgCol = 'white';
+	}
 	else {
-		$bgCol = 'grey';}
+		$bgCol = 'grey';
+	}
 	
 	return $bgCol;
-	}
+}
 
 /// Header functions
 
