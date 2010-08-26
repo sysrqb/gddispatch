@@ -28,4 +28,17 @@ if(($tinter->format('%H')) < ($diff->format('%H'))){
 else {
 	echo "false\n";
 }
+
+for($bench = 0; $bench < 3; $bench++)
+{
+    $start = microtime(true);
+        $a = 1;
+	    for($i = 0; $i < 100000000; $i++)
+	      {
+	              if($a != 'hello') $b++;
+		          }
+			      $end = microtime(true);
+			          echo "Used time: " . ($end-$start) . "\n";
+				  }
+
 ?>

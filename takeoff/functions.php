@@ -203,10 +203,10 @@ function tblHome($tdone,$tstatus) {
 
 //color the rows?
 function rowColor($i) {
-	if (fmod($i,2) == 0) {
+	if (fmod($i,2) == 0) {//white if the row is even
 		$bgCol = 'white';
 	}
-	else {
+	else {//grey if the row isn't even
 		$bgCol = 'grey';
 	}
 	
@@ -215,10 +215,9 @@ function rowColor($i) {
 
 /// Header functions
 
-function checkRideCount($type) {
+function checkRideCount($status) {
 	global $dateofride;
-
-	$cSql = "SELECT * FROM rides WHERE ridedate = ".$dateofride." AND status = '".$type."'";
+	$ridecount->bind_param('bs',,$status);
 	return mysql_num_rows(mysql_query($cSql)); //return the number of current rides for appropiate status
 	}
 

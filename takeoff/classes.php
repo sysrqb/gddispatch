@@ -2,13 +2,10 @@
 error_reporting(E_ERROR);
 ini_set('display_errors', '1');
 
+require('connection.php');
 include("functions.php"); 
 require("creds.php");
 
-// database connection
-$con = mysql_connect($host,$username,$password);
-if (!$con) die('Could not connect: ' . mysql_error());}
-mysql_select_db($db,$con);
 
 /****************************
 Ride Class
