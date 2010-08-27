@@ -23,20 +23,20 @@ Begin function definitions
 //create prepared statements
 function prepare($con){
 	global $prepare; 
-	$prepare('ridecount' => "mysqli_stmt_prepare($con, "SELECT * FROM rides WHERE DATE(ridedate) = ? AND status =?")", 
-		 'totalcount' => "mysqli_stmt_prepare($con, "SELECT SUM(riders) as total FROM rides WHERE ridedate = ? AND status = ?")",
-		 'setpreride' => "mysqli_stmt_prepare($con, "UPDATE rides SET precar = ?, status = 'waiting' WHERE num=?")",
-		 'getpreride' => "mysqli_stmt_prepare($con, "SELECT precar FROM rides WHERE num=?")",
-		 'setride' => "mysqli_stmt_prepare($con, "UPDATE rides SET car =? , status = 'riding', timeassigned =? WHERE num=?")",
-		 'getride' => "mysqli_stmt_prepare($con, "SELECT * FROM rides WHERE num =?")",
-		 'splitduplicate' => "mysqli_stmt_prepare($con, "INSERT INTO rides (name,cell,riders,pickup,dropoff,location,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?)")", 
-		 'splitupdate' = "mysqli_stmt_prepare($con, "UPDATE rides SET car =? , riders =?, status = 'riding', timeassigned =? WHERE num=?")",
-		 'rideupdate' => "mysqli_stmt_prepare($con, "UPDATE rides SET car=?, name=?, cell=?, riders=?, pickup=?, dropoff=?, location=?, clothes=?, notes=? WHERE num=?")",
-		 'rideadd' => "mysqli_stmt_prepare($con, "INSERT INTO rides (name,cell,riders,pickup,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?, 'waiting', ?,?)")",
-		 'getridetocancel' => "mysqli_stmt_prepare($con, "UPDATE rides SET status =? , timedone =?, WHERE num=?")", 
-		 'rideundo' => "mysqli_stmt_prepare($con, "UPDATE rides SET status=? where num=?")",
-		 'ridedone' => "mysqli_stmt_prepare($con, "UPDATE rides SET status='done', timedone=? WHERE num=?")",
-		 'carupdate' => "mysqli_stmt_prepare($con, "INSERT INTO contacted (carnum,reason,ridedate,contacttime) VALUES (?,?,?,?)")",
+	$prepare = array('ridecount' => 'mysqli_stmt_prepare($con, "SELECT * FROM rides WHERE DATE(ridedate) = ? AND status =?")', 
+		 'totalcount' => 'mysqli_stmt_prepare($con, "SELECT SUM(riders) as total FROM rides WHERE ridedate = ? AND status = ?")',
+		 'setpreride' => 'mysqli_stmt_prepare($con, "UPDATE rides SET precar = ?, status = "waiting" WHERE num=?")',
+		 'getpreride' => 'mysqli_stmt_prepare($con, "SELECT precar FROM rides WHERE num=?")',
+		 'setride' => 'mysqli_stmt_prepare($con, "UPDATE rides SET car =? , status = "riding", timeassigned =? WHERE num=?")',
+		 'getride' => 'mysqli_stmt_prepare($con, "SELECT * FROM rides WHERE num =?")',
+		 'splitduplicate' => 'mysqli_stmt_prepare($con, "INSERT INTO rides (name,cell,riders,pickup,dropoff,location,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?)")', 
+		 'splitupdate' => 'mysqli_stmt_prepare($con, "UPDATE rides SET car =? , riders =?, status = "riding", timeassigned =? WHERE num=?")',
+		 'rideupdate' => 'mysqli_stmt_prepare($con, "UPDATE rides SET car=?, name=?, cell=?, riders=?, pickup=?, dropoff=?, location=?, clothes=?, notes=? WHERE num=?")',
+		 'rideadd' => 'mysqli_stmt_prepare($con, "INSERT INTO rides (name,cell,riders,pickup,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?, "waiting", ?,?)")',
+		 'getridetocancel' => 'mysqli_stmt_prepare($con, "UPDATE rides SET status =? , timedone =?, WHERE num=?")', 
+		 'rideundo' => 'mysqli_stmt_prepare($con, "UPDATE rides SET status=? where num=?")',
+		 'ridedone' => 'mysqli_stmt_prepare($con, "UPDATE rides SET status="done", timedone=? WHERE num=?")',
+		 'carupdate' => 'mysqli_stmt_prepare($con, "INSERT INTO contacted (carnum,reason,ridedate,contacttime) VALUES (?,?,?,?)")',
 		);
 	return $prepare;
 }
@@ -51,11 +51,13 @@ function connect(){
 	mysqli_select_db($con, $db);
 	return $con;
 }
+
+
 //Used to translate a time in GMT to EST+5
-function gmttoest()
-	global $gtime;{
+function gmttoest(){
+	global $gtime;
 	$gm = date_format($gtime, "H");//What hour is it GMT?
-	if($gm -lt 05){//If it is before 05:00 then it is still yesterday EST and thus between 18:00...23:00
+	if($gm < 05){//If it is before 05:00 then it is still yesterday EST and thus between 18:00...23:00
 		$gm=24+$gm;//add 24 hours to GMT time to account for difference in day
 		$diff = $gm-(date_format($time, "H"));//subtract the hour in GMT and the hour in EST
 		return date_create(date_format($time, 'Y-m-d') . ' '  . $diff . ':' . date_format($time, 'i:s'));//return a type of DateTime with format Y-m-d H:i:s
@@ -155,13 +157,13 @@ function tblCalledIn($intime){
 	$diff = date_format($diff, "%H:%I");//format difference in hours:minutes format
 	$interval30 = new DateInterval('PT30M');//create a time interval of 30 minutes, used for comparison
 	$interval50 = new DateInterval('PT50M');//creates a time interval of 50 minutes, used for comparison
-	if(date_format($diff, '%H') > $interval30->format('%H'){//compare the hours. if $diff has hours greater than 0, time long
+	if(date_format($diff, '%H') > $interval30->format('%H')){//compare the hours. if $diff has hours greater than 0, time long
 		$tclass = 'long';//time = long
 	}
-	elseif(date_format($diff, '%I') < $interval30->format('%I'){//if hours aren't larger than 0 (which I hope they aren't), compare minutes. if diff is less than 30, time is short
+	elseif(date_format($diff, '%I') < $interval30->format('%I')){//if hours aren't larger than 0 (which I hope they aren't), compare minutes. if diff is less than 30, time is short
 		$tclass = 'short';//time = short
 	}
-	elseif(date_format($diff, '%I') < $interval50->format('%I'){//if time is not less than 30 minutes, maybe it's less than 50 minutes. if so, time is medium
+	elseif(date_format($diff, '%I') < $interval50->format('%I')){//if time is not less than 30 minutes, maybe it's less than 50 minutes. if so, time is medium
 		$tclass = 'med';//time = med
 	}
 	else{
@@ -184,13 +186,13 @@ function tblTimeWait($called,$assigned,$done,$status,$pickup) {
 	$diff = date_format($diff, "%H:%I");//format difference in hours:minutes format
 	$interval30 = new DateInterval('PT30M');//create a time interval of 30 minutes, used for comparison
 	$interval50 = new DateInterval('PT50M');//creates a time interval of 50 minutes, used for comparison
-	if(date_format($diff, '%H') > $interval30->format('%H'){//compare the hours. if $diff has hours greater than 0, time long
+	if(date_format($diff, '%H') > $interval30->format('%H')){//compare the hours. if $diff has hours greater than 0, time long
 		$tclass = 'long';//time = long
 	}
-	elseif(date_format($diff, '%I') < $interval30->format('%I'){//if hours aren't larger than 0 (which I hope they aren't), compare minutes. if diff is less than 30, time is short
+	elseif(date_format($diff, '%I') < $interval30->format('%I')){//if hours aren't larger than 0 (which I hope they aren't), compare minutes. if diff is less than 30, time is short
 		$tclass = 'short';//time = short
 	}
-	elseif(date_format($diff, '%I') < $interval50->format('%I'){//if time is not less than 30 minutes, maybe it's less than 50 minutes. if so, time is medium
+	elseif(date_format($diff, '%I') < $interval50->format('%I')){//if time is not less than 30 minutes, maybe it's less than 50 minutes. if so, time is medium
 		$tclass = 'med';//time = med
 	}
 	else{
@@ -213,13 +215,13 @@ function tblTimeRode($done,$assigned,$status,$pickup) {
 		$diff = date_format($diff, "%H:%I");//format difference in hours:minutes format
 		$interval30 = new DateInterval('PT30M');//create a time interval of 30 minutes, used for comparison
 		$interval50 = new DateInterval('PT50M');//creates a time interval of 50 minutes, used for comparison
-		if(date_format($diff, '%H') > $interval30->format('%H'){//compare the hours. if $diff has hours greater than 0, time long
+		if(date_format($diff, '%H') > $interval30->format('%H')){//compare the hours. if $diff has hours greater than 0, time long
 			$tclass = 'long';//time = long
 		}
-		elseif(date_format($diff, '%I') < $interval30->format('%I'){//if hours aren't larger than 0 (which I hope they aren't), compare minutes. if diff is less than 30, time is short
+		elseif(date_format($diff, '%I') < $interval30->format('%I')){//if hours aren't larger than 0 (which I hope they aren't), compare minutes. if diff is less than 30, time is short
 			$tclass = 'short';//time = short
 		}
-		elseif(date_format($diff, '%I') < $interval50->format('%I'){//if time is not less than 30 minutes, maybe it's less than 50 minutes. if so, time is medium
+		elseif(date_format($diff, '%I') < $interval50->format('%I')){//if time is not less than 30 minutes, maybe it's less than 50 minutes. if so, time is medium
 			$tclass = 'med';//time = med
 		}
 		else{
@@ -262,23 +264,26 @@ function rowColor($i) {
 
 //counts the number of rides pending for the given status
 function checkRideCount($status) {
-	global $gdate;
-	global $prepare;
-	mysqli_stmt_bind_param($prepare['ridecount'], 'ss',date_format($gdate,'Y-m-d'),$status);
+	global $prepare, $gtime;
+
+	mysqli_stmt_bind_param($prepare['ridecount'], 'ss', date_format($gtime, 'Y-m-d'), $status);
 	mysqli_stmt_execute($prepare['ridecount']);
-	$cQry = mysqli_stmt_fetch($prepare['ridecount']);
-	return mysql_num_rows($cQry)); //return the number of current rides for appropiate status
+	mysqli_stmt_bind_result($prepare['ridecount'], $count);
+	while(mysqli_stmt_fetch($prepare['ridecount'])){
+		return $count;//return the number of current rides for appropiate status
+	}
 }
 
 //counts the total number of lives saved
 function checkCount($type) {
-	global $gdate;
-	global $prepare;
-	mysqli_stmt_bind_param($prepare['totalcount'], 'ss', date_format($gdate, 'Y-m-d'), $status);
+	global $prepare, $gtime;
+
+	mysqli_stmt_bind_param($prepare['totalcount'], 'ss', date_format($gtime, 'Y-m-d'), $status);
 	mysqli_stmt_execute($prepare['totalcount']);
-	$cQry = mysqli_stmt_fetch($prepare['totalcount']);
-	while ($row = mysql_fetch_array($cQry)) {
-	return $row['total'];}
+	mysqli_stmt_bind_result($prepare['totalcount'], $total);
+	while(mysqli_stmt_fetch($prepare['totalcount'])){
+		return $total;
+	}
 }
 
 /// Action Functions
@@ -298,11 +303,11 @@ function prerideAssign($num,$precar) {
 function assignedPreride($num){
 	global $prepare;
 	mysqli_stmt_bind_param($prepare['getpreride'],'i',$num);
-	if(!mysqli_stmt_execute($prepare['getpreride']){
+	if(!mysqli_stmt_execute($prepare['getpreride'])){
 		die ('SELECT failed: ' . mysql_error());
 	}
 	mysqli_stmt_bind_result($prepare['getpreride'], $car);
-	while(mysqli_stmt_fetch($prepare['getpreride']){
+	while(mysqli_stmt_fetch($prepare['getpreride'])){
 		return $car;
 	}
 }
@@ -310,11 +315,12 @@ function assignedPreride($num){
 
 //assigns ride to a car
 function rideAssign($num,$car) {
-	global $prepare
-	mysqli_stmt_bind_param($prepare['setride'],'isi', $car, date_format($gtime,'Y-m-d H:i:s'), $num);
+	global $prepare, $gtime;
+	mysqli_stmt_bind_param($prepare['setride'], 'isi', $car, date_format($gtime,'Y-m-d H:i:s'), $num);
 	if(!mysqli_stmt_execute($prepare['setride'])){
-		die('UPDATE failed: ' . mysql_error())
+		die('UPDATE failed: ' . mysqli_stmt_error($prepare['setride']));
 	}
+}
 
 
 //splits a single ride into multiple cars
@@ -363,8 +369,8 @@ function rideSplit($num,$car,$riders) {
 									  );
 	
 
-	if(!mysqli_stmt_execute($prepare['splitduplicate']{
-		die('INSERT failed: ' . mysqli_stmt_error($prepare['splitduplicate'));
+	if(!mysqli_stmt_execute($prepare['splitduplicate'])){
+		die('INSERT failed: ' . mysqli_stmt_error($prepare['splitduplicate']));
 	}
 	
 	// this assigns the intended ride
@@ -377,9 +383,11 @@ function rideSplit($num,$car,$riders) {
 //Edit the ride information
 function rideEdit($num) {
 	global $prepare;
+	$cellnumber = $_POST["cellOne"].$_POST["cellTwo"].$_POST["cellThree"];
+
 	mysqli_stmt_bind_param($prepare['rideupdate'], 'iisisssssi', $_POST['car'],
 								     $_POST['name'],
-								     $_POST['cellOne'].$_POST["cellTwo"].$_POST["cellThree"],
+								     $cellnumber,
 								     $_POST['riders'],
 								     $_POST['pickup'],
 								     $_POST['dropoff'],
@@ -406,8 +414,17 @@ function rideEdit($num) {
 //Add ride to DB
 function rideAdd() {
 	global $prepare, $gtime;
-
-	mysqli_stmt_bind_param($prepare['rideadd'], 'ssisssssss', $_POST["name"], $_POST["cell1"].$_POST["cell2"].$_POST["cell3"], $_POST["riders"], $_POST["dropoff"], $_POST["loc"], $_POST["clothes"], $_POST["notes"], date_format($gtime, 'Y-m-d'), date_format($gtime, 'Y-m-d H:i:s'));
+	
+	$cellnumber = $_POST["cell1"].$_POST["cell2"].$_POST["cell3"]; 
+	mysqli_stmt_bind_param($prepare['rideadd'], 'ssisssssss', $_POST["name"], 
+								  $cellnumber,
+								  $_POST["riders"],
+								  $_POST["dropoff"], 
+								  $_POST["loc"], 
+								  $_POST["clothes"], 
+								  $_POST["notes"], 
+								  date_format($gtime, 'Y-m-d'), 
+								  date_format($gtime, 'Y-m-d H:i:s'));
 
 /*    $qry = "INSERT INTO rides (name,cell,riders,pickup,dropoff,aploc,dormloc,clothes,notes,status,ridedate,timetaken) VALUES 
     ('".
@@ -498,7 +515,11 @@ function rideDone($num) {
 //update when the car was last contacted
 function carUpdate() {
 	global $prepare, $gtime;
-	mysqli_stmt_bind_param($prepare['careupdate'], 'i,s,s,s', $_POST["carnum"], 'called', date_format($gtime, 'Y-m-d H:i:s'), date_format($gtime, 'Y-m-d H:i:s'));
+	$called = 'called';
+	mysqli_stmt_bind_param($prepare['careupdate'], 'i,s,s,s', $_POST["carnum"], 
+								  $called, 
+								  date_format($gtime, 'Y-m-d H:i:s'), 
+								  date_format($gtime, 'Y-m-d H:i:s'));
 	
 /*    $qry = "INSERT INTO contacted (carnum,reason,ridedate,contacttime) VALUES 
     ('".
@@ -508,14 +529,18 @@ function carUpdate() {
     '".date("YmdHis")."')";
 */
 	if(!mysqli_stmt_execute($prepare['carupdate'])){
-		die('INSERT failed: ' . mysqli_stmt_error($prepare['carupdate']);
+		die('INSERT failed: ' . mysqli_stmt_error($prepare['carupdate']));
 	}
 }
     
 //update when the car has returned back to the office
 function carHome() {
 	global $prepare, $gtime;
-	mysqli_stmt_bind_param($prepare['careupdate'], 'i,s,s,s', $_POST["carnum"], 'home', date_format($gtime, 'Y-m-d H:i:s'), date_format($gtime, 'Y-m-d H:i:s'));
+	$home = 'home';
+	mysqli_stmt_bind_param($prepare['careupdate'], 'i,s,s,s', $_POST["carnum"], 
+								  $home, 
+								  date_format($gtime, 'Y-m-d H:i:s'), 
+								  date_format($gtime, 'Y-m-d H:i:s'));
 
 /*    $qry = "INSERT INTO contacted (carnum,reason,ridedate,contacttime) VALUES 
     ('".
@@ -525,7 +550,7 @@ function carHome() {
     '".date("YmdHis")."')";
 */    
 	if(!mysqli_stmt_execute($prepare['carupdate'])){
-		die('INSERT failed: ' . mysqli_stmt_error($prepare['carupdate']);
+		die('INSERT failed: ' . mysqli_stmt_error($prepare['carupdate']));
 	}
 }
     

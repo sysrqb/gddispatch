@@ -1,0 +1,1 @@
+if (checkCount("waiting")!<1){ echo "(", checkCount("waiting"), ")";
