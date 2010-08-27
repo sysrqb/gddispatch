@@ -46,7 +46,7 @@ function connect(){
 	global $host, $username, $password, $db;
 	$con = mysqli_connect($host,$username,$password);
 	if(!$con){
-		die('Connection Error (' . mysqli_connect_errno() . ') ' . mysqli_connect_error());
+		die("Connection Error host = " . $host . " \n username= ". $username . " \n password= ". $password . " \n db = ". $db . '(' . mysqli_connect_errno() . ') ' . mysqli_connect_error());
 	}
 	mysqli_select_db($con, $db);
 	return $con;
