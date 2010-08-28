@@ -19,7 +19,7 @@
 			<p><label class="left">Where are you staying?</label>
 			   <input class="field" name="dropoff" /></p>
 			<p><label class="left">If they live in apartments:</label>
-     			   <select name="aploc" class="combo">
+     			   <select name="loc" class="combo">
                 		<option value="Null"> <b>Select a Location:</b> </option>
             		        <option value="Al"> Alumni </option>
                      		<option value="B"> Buckley </option>

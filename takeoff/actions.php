@@ -1,5 +1,6 @@
 <?php
 include("classes.php");
+include('functions.php');
     
 switch($_GET["action"]){ //retrieves case from respective page
 	case "cancel": //if case button was clicked on riding or waiting page

@@ -2,9 +2,7 @@
 error_reporting(E_ERROR);
 ini_set('display_errors', '1');
 
-require('connection.php');
-include("functions.php"); 
-require("creds.php");
+//include("functions.php"); 
 
 
 /****************************

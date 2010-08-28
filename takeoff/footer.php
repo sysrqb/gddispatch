@@ -1,5 +1,5 @@
 <?php 
-require('header.php');
+//require('header.php');
 //disconnect from MYSQL server
 mysqli_close($con);
 

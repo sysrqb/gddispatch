@@ -17,7 +17,7 @@ if ($pgId<>"incoming") {	echo '<meta HTTP-EQUIV="Refresh" CONTENT="150" />';}
 </head>
 <body id="<?php echo ($pgId) ?>">
 <div class="container">
-	<?php include("header.php"); ?>
+	<?php require('./header.php'); ?>
   	<div class="main-content">
  
  

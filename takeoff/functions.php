@@ -8,6 +8,7 @@ gtime defines the current time GMT, in Year-Month-Day Hour:Minutes:Seconds forma
 time defines the current time in the currect timezone, in Year-Month-Day Hour:Minutes:Seconds format
 */
 $gtime = gmdate('Y-m-d H:i:s');
+$gdate = gmdate('Y-m-d');
 $time = time('Y-m-d H:i:s');
 
 /*
@@ -21,22 +22,22 @@ Begin function definitions
 
 
 //create prepared statements
-function prepare($con){
+function prepare(){
 	global $prepare; 
-	$prepare = array('ridecount' => 'mysqli_stmt_prepare($con, "SELECT * FROM rides WHERE DATE(ridedate) = ? AND status =?")', 
-		 'totalcount' => 'mysqli_stmt_prepare($con, "SELECT SUM(riders) as total FROM rides WHERE ridedate = ? AND status = ?")',
-		 'setpreride' => 'mysqli_stmt_prepare($con, "UPDATE rides SET precar = ?, status = "waiting" WHERE num=?")',
-		 'getpreride' => 'mysqli_stmt_prepare($con, "SELECT precar FROM rides WHERE num=?")',
-		 'setride' => 'mysqli_stmt_prepare($con, "UPDATE rides SET car =? , status = "riding", timeassigned =? WHERE num=?")',
-		 'getride' => 'mysqli_stmt_prepare($con, "SELECT * FROM rides WHERE num =?")',
-		 'splitduplicate' => 'mysqli_stmt_prepare($con, "INSERT INTO rides (name,cell,riders,pickup,dropoff,location,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?)")', 
-		 'splitupdate' => 'mysqli_stmt_prepare($con, "UPDATE rides SET car =? , riders =?, status = "riding", timeassigned =? WHERE num=?")',
-		 'rideupdate' => 'mysqli_stmt_prepare($con, "UPDATE rides SET car=?, name=?, cell=?, riders=?, pickup=?, dropoff=?, location=?, clothes=?, notes=? WHERE num=?")',
-		 'rideadd' => 'mysqli_stmt_prepare($con, "INSERT INTO rides (name,cell,riders,pickup,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?, "waiting", ?,?)")',
-		 'getridetocancel' => 'mysqli_stmt_prepare($con, "UPDATE rides SET status =? , timedone =?, WHERE num=?")', 
-		 'rideundo' => 'mysqli_stmt_prepare($con, "UPDATE rides SET status=? where num=?")',
-		 'ridedone' => 'mysqli_stmt_prepare($con, "UPDATE rides SET status="done", timedone=? WHERE num=?")',
-		 'carupdate' => 'mysqli_stmt_prepare($con, "INSERT INTO contacted (carnum,reason,ridedate,contacttime) VALUES (?,?,?,?)")',
+	$prepare = array('ridecount' => "SELECT * FROM rides WHERE DATE(ridedate) = ? AND status =?", 
+		 'totalcount' => "SELECT SUM(riders) as total FROM rides WHERE ridedate = ? AND status = ?",
+		 'setpreride' => "UPDATE rides SET precar = ?, status = 'waiting' WHERE num=?",
+		 'getpreride' => "SELECT precar FROM rides WHERE num=?",
+		 'setride' => "UPDATE rides SET car =? , status = 'riding', timeassigned =? WHERE num=?",
+		 'getride' => "SELECT * FROM rides WHERE num =?",
+		 'splitduplicate' => "INSERT INTO rides (name,cell,riders,pickup,dropoff,location,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?)", 
+		 'splitupdate' => "UPDATE rides SET car =? , riders =?, status = 'riding', timeassigned =? WHERE num=?",
+		 'rideupdate' => "UPDATE rides SET car=?, name=?, cell=?, riders=?, pickup=?, dropoff=?, location=?, clothes=?, notes=? WHERE num=?",
+		 'rideadd' => '"INSERT INTO rides (name,cell,riders,pickup,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?)"',
+		 'getridetocancel' => "UPDATE rides SET status =? , timedone =?, WHERE num=?", 
+		 'rideundo' => "UPDATE rides SET status=? where num=?",
+		 'ridedone' => "UPDATE rides SET status='done', timedone=? WHERE num=?",
+		 'carupdate' => "INSERT INTO contacted (carnum,reason,ridedate,contacttime) VALUES (?,?,?,?)"
 		);
 	return $prepare;
 }
@@ -44,6 +45,7 @@ function prepare($con){
 //establish connection to mysql database. credentials and db name are found in cred.php
 function connect(){
 	global $host, $username, $password, $db;
+	prepare();
 	$con = mysqli_connect($host,$username,$password);
 	if(!$con){
 		die("Connection Error host = " . $host . " \n username= ". $username . " \n password= ". $password . " \n db = ". $db . '(' . mysqli_connect_errno() . ') ' . mysqli_connect_error());
@@ -414,17 +416,36 @@ function rideEdit($num) {
 //Add ride to DB
 function rideAdd() {
 	global $prepare, $gtime;
+	$con= connect();
 	
+	if(!($stmt = mysqli_stmt_init($con))){
+		die('Initialization failed: ' . isset($con));
+	}
+	echo "after init \n";
+	$prep = '"' . $prepare['rideadd'] . '"';
+	echo "Prepare: \n" . $prep . "\n";?> <br><?php
+	echo '"INSERT INTO rides (name,cell,riders,pickup,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?)"';
+	if(!mysqli_stmt_prepare($stmt, "INSERT INTO rides (name,cell,riders,pickup,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?)")){
+		die('Preparing the statement failed ' .  isset($stmt) . mysqli_stmt_errno($stmt) . ' ' . mysqli_stmt_error($stmt));
+	}
+	echo "before prep\n";
+		 //'rideadd' => "INSERT INTO rides (name,cell,riders,pickup,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
 	$cellnumber = $_POST["cell1"].$_POST["cell2"].$_POST["cell3"]; 
-	mysqli_stmt_bind_param($prepare['rideadd'], 'ssisssssss', $_POST["name"], 
+	$waiting = 'waiting';
+	if(!mysqli_stmt_bind_param($stmt, 'ssissssssss', $_POST["name"], 
 								  $cellnumber,
+								  $_POST["pickup"],
 								  $_POST["riders"],
 								  $_POST["dropoff"], 
 								  $_POST["loc"], 
 								  $_POST["clothes"], 
 								  $_POST["notes"], 
-								  date_format($gtime, 'Y-m-d'), 
-								  date_format($gtime, 'Y-m-d H:i:s'));
+								  $waiting,
+								  $gdate, 
+								  $gtime)){
+		die('Binding the parameters failed ' .  mysqli_stmt_errno($stmt) . mysqli_stmt_error($stmt));
+	}
+	echo "before exec";
 
 /*    $qry = "INSERT INTO rides (name,cell,riders,pickup,dropoff,aploc,dormloc,clothes,notes,status,ridedate,timetaken) VALUES 
     ('".
@@ -440,10 +461,10 @@ function rideAdd() {
     $dateofride."','".
     date("YmdHis")."')";
 */
-	
-	if(!mysqli_stmt_execute($prepare['rideadd'])){
-		die('INSERT failed: ' . mysqli_stmt_error($prepare['rideadd']));
+	if(!mysqli_stmt_execute($stmt)){
+		die('INSERT failed: ' . mysqli_stmt_errno($stmt) . ' ' . mysqli_stmt_error($stmt) );
 	}
+	echo "end";
 }
 
 
