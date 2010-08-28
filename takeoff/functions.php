@@ -304,12 +304,18 @@ function prerideAssign($num,$precar) {
 //retrieves set preride car
 function assignedPreride($num){
 	global $prepare;
-	mysqli_stmt_bind_param($prepare['getpreride'],'i',$num);
-	if(!mysqli_stmt_execute($prepare['getpreride'])){
+	$con = connect();
+	if(!($stmt = mysqli_stmt_init($con))){
+		die('Initialization failed: ' . mysqli_stmt_error($stmt) . isset($con));
+	}
+	if(!mysqli_stmt_bind_param($stmt,'s',$num)){
+		die('Bind failed: ' . mysqli_stmt_error($stmt));
+	}
+	if(!mysqli_stmt_execute("SELECT precar FROM rides WHERE num=?")){
 		die ('SELECT failed: ' . mysql_error());
 	}
-	mysqli_stmt_bind_result($prepare['getpreride'], $car);
-	while(mysqli_stmt_fetch($prepare['getpreride'])){
+	mysqli_stmt_bind_result($stmt, $car);
+	while(mysqli_stmt_fetch($stmt)){
 		return $car;
 	}
 }

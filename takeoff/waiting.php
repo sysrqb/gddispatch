@@ -30,7 +30,7 @@
 		die('Prep failed ' . mysqli_stmt_error($stmt));
 	}
 	$waiting = 'waiting';
-	if(!mysqli_stmt_bind_param($stmt, 'ss',date_format($gmdate, 'Y-m-d'), $waiting)){
+	if(!mysqli_stmt_bind_param($stmt, 'ss',gmdate('Y-m-d'), $waiting)){
 		die('failed to bind variables ' . mysqli_stmt_error($stmt));
 	}
 	if(!mysqli_stmt_execute($stmt)){
@@ -41,7 +41,6 @@
 	while(mysqli_stmt_fetch($stmt)){
 		
 	
-	print_r($row);
 
 	//$sql = "SELECT * FROM rides WHERE ridedate = ".$dateofride." AND status = 'waiting' ORDER BY timetaken ASC";
 	//$qry = mysql_query($sql);
