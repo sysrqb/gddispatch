@@ -19,7 +19,7 @@ switch($_GET["action"]){ //retrieves case from respective page
     	header("location: ./riding.php?num=".$_POST["num"]); //redirect to riding page
     	break;
     case "preassign": //if reassign was clicked on waiting page
-    	prerideAssign($_POST["num"],$_POST["precar"]); //call prerideAssign function in function.php
+    	prerideAssign($_POST["num"],$_POST["carnum"]); //call prerideAssign function in function.php
     	header("location: ./waiting.php?num=".$_POST["num"]); //remain on waiting page
     	break;
     case "split": //if split was called on waiting page

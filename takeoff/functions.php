@@ -293,10 +293,23 @@ function checkCount($type) {
 
 //sets the preride car
 function prerideAssign($num,$precar) {
-	global $prepare;
-	mysqli_stmt_bind_param($prepare['setpreride'],'ii',$precar,$num);
-	if(!mysqli_stmt_execute($prepare['setpreride'])){
-		die('UPDATE failed: ' . mysql_error());
+	//global $prepare;
+	global $gtime;
+	$con = connect();
+	if(!($stmt = mysqli_stmt_init($con))){
+		die('Init failed: ' . mysqli_stmt_error($stmt));
+	}
+
+	if(!mysqli_stmt_prepare($stmt, "UPDATE rides SET precar =? , status = 'waiting', timeassigned =? WHERE num=?")){
+		die('Prep failed: ' .mysqli_stmt_error($stmt));
+	}
+
+	if(!mysqli_stmt_bind_param($stmt,'isi',$precar,$gtime,$num)){
+		die($num . 'Bind failed ' . mysqli_stmt_error($stmt));
+	}
+
+	if(!mysqli_stmt_execute($stmt)){
+		die('UPDATE failed: ' . mysqli_stmt_error());
 	}
 }
 
@@ -308,10 +321,13 @@ function assignedPreride($num){
 	if(!($stmt = mysqli_stmt_init($con))){
 		die('Initialization failed: ' . mysqli_stmt_error($stmt) . isset($con));
 	}
-	if(!mysqli_stmt_bind_param($stmt,'s',$num)){
-		die('Bind failed: ' . mysqli_stmt_error($stmt));
+	if(!mysqli_stmt_prepare($stmt, "SELECT precar FROM rides WHERE num=?")){
+		die('Prepare failed: ' . mysqli_stmt_error($stmt));
 	}
-	if(!mysqli_stmt_execute("SELECT precar FROM rides WHERE num=?")){
+	if(!mysqli_stmt_bind_param($stmt,'i',$num)){
+		die("Bind Failed: $num " . mysqli_stmt_error($stmt));
+	}
+	if(!mysqli_stmt_execute($stmt)){
 		die ('SELECT failed: ' . mysql_error());
 	}
 	mysqli_stmt_bind_result($stmt, $car);
@@ -324,9 +340,21 @@ function assignedPreride($num){
 //assigns ride to a car
 function rideAssign($num,$car) {
 	global $prepare, $gtime;
-	mysqli_stmt_bind_param($prepare['setride'], 'isi', $car, date_format($gtime,'Y-m-d H:i:s'), $num);
-	if(!mysqli_stmt_execute($prepare['setride'])){
-		die('UPDATE failed: ' . mysqli_stmt_error($prepare['setride']));
+	$con = connect();
+	if(!($stmt = mysqli_stmt_init($con))){
+		die('Init failed: ' . mysqli_stmt_error($stmt));
+	}
+
+	if(!mysqli_stmt_prepare($stmt, "UPDATE rides SET car =? , status = 'riding', timeassigned =? WHERE num=?")){
+		die('Prep failed: ' .mysqli_stmt_error($stmt));
+	}
+
+	if(!mysqli_stmt_bind_param($stmt,'isi', $car, $gtime, $num)){
+		die('Bind failed ' . mysqli_stmt_error($stmt));
+	}
+
+	if(!mysqli_stmt_execute($stmt)){
+		die('UPDATE failed: ' . mysqli_stmt_error($stmt));
 	}
 }
 
@@ -421,21 +449,21 @@ function rideEdit($num) {
 
 //Add ride to DB
 function rideAdd() {
-	global $prepare, $gtime;
+	global $prepare, $gtime, $gdate;
 	$con= connect();
 	
 	if(!($stmt = mysqli_stmt_init($con))){
 		die('Initialization failed: ' . isset($con));
 	}
-	echo "after init \n";
+	//echo "after init \n";
 	$prep = '"' . $prepare['rideadd'] . '"';
-	echo "Prepare: \n" . $prep . "\n";?> <br><?php
-	echo '"INSERT INTO rides (name,cell,riders,pickup,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?)"';
+	//echo "Prepare: \n" . $prep . "\n";?> <br><?php
+	//echo '"INSERT INTO rides (name,cell,riders,pickup,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?)"';
 	if(!mysqli_stmt_prepare($stmt, "INSERT INTO rides (name,cell,riders,pickup,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?)")){
 		die('Preparing the statement failed ' .  isset($stmt) . mysqli_stmt_errno($stmt) . ' ' . mysqli_stmt_error($stmt));
 	}
-	echo "before prep\n";
-		 //'rideadd' => "INSERT INTO rides (name,cell,riders,pickup,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+	//echo "before prep\n";
+	 	//'rideadd' => "INSERT INTO rides (name,cell,riders,pickup,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
 	$cellnumber = $_POST["cell1"].$_POST["cell2"].$_POST["cell3"]; 
 	$waiting = 'waiting';
 	if(!mysqli_stmt_bind_param($stmt, 'ssissssssss', $_POST["name"], 
