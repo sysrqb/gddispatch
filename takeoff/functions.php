@@ -34,7 +34,7 @@ function prepare(){
 		 'splitupdate' => "UPDATE rides SET car =? , riders =?, status = 'riding', timeassigned =? WHERE num=?",
 		 'rideupdate' => "UPDATE rides SET car=?, name=?, cell=?, riders=?, pickup=?, dropoff=?, location=?, clothes=?, notes=? WHERE num=?",
 		 'rideadd' => '"INSERT INTO rides (name,cell,riders,pickup,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?)"',
-		 'getridetocancel' => "UPDATE rides SET status =? , timedone =?, WHERE num=?", 
+		 'setridetocancel' => "UPDATE rides SET status =? , timedone =?, WHERE num=?", 
 		 'rideundo' => "UPDATE rides SET status=? where num=?",
 		 'ridedone' => "UPDATE rides SET status='done', timedone=? WHERE num=?",
 		 'carupdate' => "INSERT INTO contacted (carnum,reason,ridedate,contacttime) VALUES (?,?,?,?)"
@@ -155,25 +155,35 @@ function tblCell($cell,$ps) {//$ps stands for pickup/status, the two input types
 function tblCalledIn($intime){
 	global $gtime;
 
-	$diff = date_diff($gtime, $intime);//get difference between $intime and now
-	$diff = date_format($diff, "%H:%I");//format difference in hours:minutes format
-	$interval30 = new DateInterval('PT30M');//create a time interval of 30 minutes, used for comparison
-	$interval50 = new DateInterval('PT50M');//creates a time interval of 50 minutes, used for comparison
-	if(date_format($diff, '%H') > $interval30->format('%H')){//compare the hours. if $diff has hours greater than 0, time long
+	$gmt = date_parse($gtime);
+	$called = date_parse($intime);
+	$mindiff = abs($gmt['minute'] - $called['minute']);
+	$hourdiff = abs($gmt['hour'] - $called['hour']);
+	
+	//$diff = date_diff($gtime, $intime);//get difference between $intime and now
+	//$time = $diff->format('%I');//format difference in hours:minutes format
+	//$interval30 = new DateInterval('PT30M');//create a time interval of 30 minutes, used for comparison
+	//$interval50 = new DateInterval('PT50M');//creates a time interval of 50 minutes, used for comparison
+
+	if($hourdiff > 0){//compare the hours. if $diff has hours greater than 0, time long
 		$tclass = 'long';//time = long
 	}
-	elseif(date_format($diff, '%I') < $interval30->format('%I')){//if hours aren't larger than 0 (which I hope they aren't), compare minutes. if diff is less than 30, time is short
+	elseif($mindiff < 30){//if hours aren't larger than 0 (which I hope they aren't), compare minutes. if diff is less than 30, time is short
 		$tclass = 'short';//time = short
 	}
-	elseif(date_format($diff, '%I') < $interval50->format('%I')){//if time is not less than 30 minutes, maybe it's less than 50 minutes. if so, time is medium
+	elseif($mindiff < 30){//if time is not less than 30 minutes, maybe it's less than 50 minutes. if so, time is medium
 		$tclass = 'med';//time = med
 	}
 	else{
 		$tclass = 'long';//otherwise it's just been way too long
 	}
 	echo '<td><span class="'.$tclass.'">';
-	echo $diff;
-	echo ' min</span></td>'."\r";
+	if($hourdiff > 0){
+		echo "$hourdiff:$mindiff min";
+	}
+	else{
+		echo "$mindiff min";
+	}
 }
 	
 
@@ -361,73 +371,109 @@ function rideAssign($num,$car) {
 
 //splits a single ride into multiple cars
 function rideSplit($num,$car,$riders) {
-	global $prepare;
+	global $gtime;
+	$con = connect();
+	if(!($stmt=mysqli_stmt_init($con))){
+		die('Init failed: ' . mysqli_stmt_error($stmt));
+	}
 
+	if(!mysqli_stmt_prepare($stmt, "SELECT * FROM rides WHERE num=?")){
+		die('Prep failed: ' .mysqli_stmt_error($stmt));
+	}
+
+	if(!mysqli_stmt_bind_param($stmt,'i', $num)){
+		die('Bind failed ' . mysqli_stmt_error($stmt));
+	}
+
+	if(!mysqli_stmt_execute($stmt)){
+		die('UPDATE failed: ' . mysqli_stmt_error($stmt));
+	}
 	//this opens the original ride
-	mysqli_stmt_bind_param($prepare['getride'], 'i', $num);
-	mysqli_stmt_execute($prepare['getride']);
-	mysqli_stmt_bind_result($prepare['getride'], $rows['num'], 
-						     $rows['name'], 
-						     $rows['cell'], 
-						     $rows['requested'], 
-						     $rows['riders'], 
-						     $rows['precar'], 
-						     $rows['car'], 
-						     $row['dropoff'], 
-						     $row['notes'], 
-						     $rows['clothes'], 
-						     $rows['ridedate'], 
-						     $rows['status'], 
-						     $rows['timetaken'], 
-						     $rows['timeassigned'], 
-						     $rows['timedone'], 
-						     $rows['loc']);
-
-	while(mysqli_stmt_fetch($prepare['getride'])){
-		$getsplit = new Ride($rows);
+	if(!mysqli_stmt_bind_result($stmt,
+				$row['num'], 
+				$row['name'], 
+				$row['cell'], 
+				$row['requested'], 
+				$row['riders'], 
+				$row['precar'], 
+				$row['car'], 
+				$row['pickup'], 
+				$row['dropoff'], 
+				$row['notes'], 
+				$row['clothes'], 
+				$row['ridedate'], 
+				$row['status'], 
+				$row['timetaken'], 
+				$row['timeassigned'], 
+				$row['timedone'],
+				$row['loc'])){
+		die('Res Bind Failed: ' . mysqli_stmt_error($stmt));
+	}
+	while(mysqli_stmt_fetch($stmt)){
     	
-		$ridersTotal = $getsplit->getAtt('riders');
-    		$ridersLeft = $ridersTotal - $riders;
+    		$ridersLeft = ($row['riders'] - $riders);
 	}		
+	mysqli_close($con);
 
 	// this creates the duplicate ride
-	mysqli_stmt_bind_params($prepare['splitride'], 's,s,i,s,s,s,s,s,s,s,s', $getsplit->getAtt('name'), 
-									  $getsplit->getAtt('cell'), 
-									  $ridersLeft, 
-									  $getsplit->getAtt('pickup'),  
-									  $getsplit->getAtt('dropoff'), 
-									  $getsplit->getAtt('location'), 
-									  $getsplit->getAtt('clothes'), 
-									  $getsplit->getAtt('notes'), 
-									  $getsplit->getAtt('status'), 
-									  $getsplit->getAtt('ridedate'), 
-									  $getsplit->getAtt('timetaken')
-									  );
-	
+	$con1 = connect();
+	if(!($stmt1 = mysqli_stmt_init($con1))){
+		die('Init Failed: ' . mysqli_stmt_error($stmt));
+	}
+	if(!mysqli_stmt_prepare($stmt1, "INSERT INTO rides (name,cell,riders,pickup,dropoff,clothes,notes,status,ridedate,timetaken,loc) VALUES (?,?,?,?,?,?,?,?,?,?,?)")){
+		die('Prep Failed: ' . mysqli_stmt_error($stmt));
+	}
+	$name = "'" . $row['name'] . "'"; 
+	$cell = "'" . $row['cell'] . "'"; 
+	$pickup = "'" . $row['pickup'] . "'";  
+	$dropoff = "'" . $row['dropoff'] . "'"; 
+	$clothes = "'" . $row['clothes'] . "'"; 
+	$notes = "'" . $row['notes'] . "'"; 
+	$status = "'" . $row['status'] . "'"; 
+	$ridedate = "'" . $row['ridedate'] . "'"; 
+	$timetaken = "'" . $row['timetaken'] . "'";
+	$loc = "'" . $row['loc'] . "'";
+	if(!mysqli_stmt_bind_param($stmt1, 's,s,i,s,s,s,s,s,s,s,s',$name,$cell,$ridersLeft,$pickup,$dropoff,$clothes,$notes,$status,$ridedate,$timetaken,$loc)){ 
+		die('Bind Failed: '. 'name ' . $name . ' cell ' . $cell . ' riders ' . $ridersLeft . ' pickup ' . $pickup . ' dropoff ' . $dropoff . ' clothes ' . $clothes . ' notes ' . $notes . ' status ' . $status . ' ridedate ' . $ridedate . ' timetaken ' . $timetaken . ' loc ' . $loc . ' ' . mysqli_stmt_errno($stmt1));
+	}	
 
-	if(!mysqli_stmt_execute($prepare['splitduplicate'])){
-		die('INSERT failed: ' . mysqli_stmt_error($prepare['splitduplicate']));
+	if(!mysqli_stmt_execute($stmt)){
+		die('INSERT failed: ' .  print_r($row) . ' ' . $ridersLeft . ' '  . mysqli_stmt_error($stmt));
 	}
-	
+	mysqli_close($con);
 	// this assigns the intended ride
-	mysqli_stmt_bind_params($prepare['splitupdate'], 'iisi', $car, $riders, date_format($gdate, 'Y-m-d H:i:s'), $num);
-	if(!mysqli_stmt_execute($prepare['splitupdate'])){
-		die('UPDATE failed: ' . mysqli_stmt_error($prepare['splitupdate']));
+	$con = connect();
+	if(!($stmt = mysqli_stmt_init($con))){
+		die('Init Failed: ' . mysqli_stmt_error($stmt));
 	}
+	if(!mysqli_stmt_prepare($stmt,"UPDATE rides SET car =? , riders =?, status = 'riding', timeassigned =? WHERE num=?")){
+		die('Prep Failed: ' . mysqli_stmt_error($stmt));
+	}
+	mysqli_stmt_bind_param($stmt, 'iisi', $car, $riders, $gtime, $num);
+	if(!mysqli_stmt_execute($stmt)){
+		die('UPDATE failed: ' . mysqli_stmt_error($stmt));
+	}
+	mysqli_close($con);
 }
 
 //Edit the ride information
 function rideEdit($num) {
 	global $prepare;
+	$con = connect();
 	$cellnumber = $_POST["cellOne"].$_POST["cellTwo"].$_POST["cellThree"];
-
-	mysqli_stmt_bind_param($prepare['rideupdate'], 'iisisssssi', $_POST['car'],
+	if(!($stmt=mysqli_stmt_init($con))){
+		die('Init Failed: ' . mysqli_stmt_error($stmt));
+	}
+	if(!mysqli_stmt_prepare($stmt,"UPDATE rides SET car=?, name=?, cell=?, riders=?, pickup=?, dropoff=?, loc=?, clothes=?, notes=? WHERE num=?")){
+		die('Prep Failed: ' . mysqli_stmt_error($stmt));
+	}
+	mysqli_stmt_bind_param($stmt, 'iisisssssi', $_POST['car'],
 								     $_POST['name'],
 								     $cellnumber,
 								     $_POST['riders'],
 								     $_POST['pickup'],
 								     $_POST['dropoff'],
-								     $_POST['location'],
+								     $_POST['loc'],
 								     $_POST['clothes'],
 								     $_POST['notes'],
 								     $num);
@@ -441,7 +487,7 @@ function rideEdit($num) {
 	location = '" . $_POST["location"] . "',
 	clothes = '" . $_POST["clothes"] . "',
 	notes = '" . $_POST["notes"] . "' WHERE num = '" . $num . "'";*/
-	if(!mysqli_stmt_execute($prepare['rideupdate'])){
+	if(!mysqli_stmt_execute($stmt)){
 		die('UPDATE failed: ' . mysqli_stmt_error($prepare['rideupdate']));
 	}
 }
@@ -503,68 +549,106 @@ function rideAdd() {
 
 
 //cancel the ride?
-function rideCancel($num, $status) {
-	global $prepare;
-
-	mysqli_stmt_bind_param($prepare['ridecancel'], 'sssi', $status, date_format($gtime, 'Y-m-d H:i:s'), $num);
-	mysqli_stmt_execute($prepare['ridecancel']);
+function rideCancel($num) {
+	global $gtime;
+	$con = connect();
+	if(!($stmt = mysqli_stmt_init($con))){
+		die('Init Failed: ' . mysqli_stmt_error($stmt));
+	}
+	if(!mysqli_stmt_prepare($stmt,"UPDATE rides SET status =?, timedone =? WHERE num=?")){
+		die('Prep Failed: ' . mysqli_stmt_error($stmt));
+	}
+	$status = 'cancelled';
+	if(!mysqli_stmt_bind_param($stmt, 'ssi', $status, $gtime, $num)){
+		die('Bind Failed: ' . mysqli_stmt_error($stmt));
+	}
+	if(!mysqli_stmt_execute($stmt)){
+		die('INSERT failed: ' . mysqli_stmt_errno($stmt) . ' ' . mysqli_stmt_error($stmt) );
+	}
 }
 
 
 //undo the last status change
 function rideUndo($num) {
-	global $prepare;
+	$con = connect();
+	if(!($stmt = mysqli_stmt_init($con))){
+		die('Init Failed: ' . mysqli_stmt_error($stmt));
+	}
+	if(!mysqli_stmt_prepare($stmt, "SELECT car FROM rides WHERE num =?")){
+		die('Prep Failed: ' . mysqli_stmt_error($stmt));
+	}
 
 	//this opens the original ride
-	mysqli_stmt_bind_param($prepare['getride'], 'i', $num);
-	mysqli_stmt_execute($prepate['getride']);
+	if(!mysqli_stmt_bind_param($stmt, 'i', $num)){
+		die('Bind Failed: ' . mysqli_stmt_error($stmt));
+	}
+	if(!mysqli_stmt_execute($stmt)){
+		die('Exec Failed: ' . mysqli_stmt_error($stmt));
+	}
+	$rows = array();
+	mysqli_stmt_bind_result($stmt,
+				$rows['car']);
 
-	mysqli_stmt_bind_result($prepare['getride'], $rows['num'], 
-						     $rows['name'], 
-						     $rows['cell'], 
-						     $rows['requested'], 
-						     $rows['riders'], 
-						     $rows['precar'], 
-						     $rows['car'], 
-						     $row['dropoff'], 
-						     $row['notes'], 
-						     $rows['clothes'], 
-						     $rows['ridedate'], 
-						     $rows['status'], 
-						     $rows['timetaken'], 
-						     $rows['timeassigned'], 
-						     $rows['timedone'], 
-						     $rows['loc']);
-
-	while(mysqli_stmt_fetch($prepare['getride'])){
-		$getundo  =  new  Ride($rows); 
+	while(mysqli_stmt_fetch($stmt)){
+		//$getundo  =  new  Ride($rows); 
    		
-		if ($getundo->getAtt('car')==0){
+		/*if ($getundo->getAtt('car')==0){
 			$stat="waiting";
 		}
 		else {
 			$stat="riding";
+		}*/
+
+		if($rows['car']==0){
+			$stat='waiting';
+		}
+		else{
+			$stat='riding';
 		}
 	}
+	mysqli_close($con);
 
-	mysqli_stmt_bind_param($prepare['rideundo'], 'si', $stat, $num);
+
+	$con = connect();
+	if(!($stmt = mysqli_stmt_init($con))){
+		die('Init Failed: ' . mysqli_stmt_error($stmt));
+	}
+
+	if(!mysqli_stmt_prepare($stmt, "UPDATE rides SET status=? WHERE num=?")){
+		die('Prep Failed: ' . mysqli_stmt_error($stmt));
+	}
+	if(!mysqli_stmt_bind_param($stmt, 'si', $stat, $num)){
+		die('Bind Failed: ' . mysqli_stmt_error($stmt));
+	}
    	//$qry = "UPDATE rides SET status = '" . $stat . "' WHERE num='" . $num . "'";
-	if(mysqli_stmt_execute($prepare['rideundo'])){
-		die('INSERT failed: ' . mysqli_stmt_error($prepare['rideundo']));
+	if(!mysqli_stmt_execute($stmt)){
+		die('INSERT failed: ' . mysqli_stmt_error($stmt));
 	}
 
 	header("location: ./" . $stat . ".php?num=".$_POST["num"]);
+	mysqli_close($con);
 
 }
     
 //move ride from 'riding' to 'done'
 function rideDone($num) {
-	global $prepare, $gtime;
-	mysqli_stmt_bind_param($prepare['ridedone'], 'si', date_format('Y-m-d H:i:s'), $num);
-	//$qry = "UPDATE rides SET status = 'done', timedone = '".date("YmdHis")."' WHERE num='" . $num . "'";
-	if(!mysqli_stmt_execute($prepare['ridedone'])){
-		die('INSERT failed: ' . mysqli_stmt_error($prepare['ridedone']));
+	global $gtime;
+	$con = connect();
+	if(!($stmt=mysqli_stmt_init($con))){
+		die('Init Failed: ' . mysqli_stmt_error($stmt));
 	}
+	if(!mysqli_stmt_prepare($stmt, "UPDATE rides SET status =? , timedone =?  WHERE num=?")){
+		die('Prep Failed: ' . mysqli_stmt_error($stmt));
+	}
+	$done = 'done';
+	if(!mysqli_stmt_bind_param($stmt, 'ssi', $done, $gtime, $num)){
+		die('Bind Failed: ' . mysqli_stmt_error($stmt));
+	}
+	//$qry = "UPDATE rides SET status = 'done', timedone = '".date("YmdHis")."' WHERE num='" . $num . "'";
+	if(!mysqli_stmt_execute($stmt)){
+		die('INSERT failed: ' . mysqli_stmt_error($stmt));
+	}
+	mysqli_close($stmt);
 }
 
 //update when the car was last contacted

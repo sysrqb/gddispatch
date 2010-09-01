@@ -9,11 +9,40 @@
 	
 <?php 
 	$pgId=$_GET["pg"] ;
-	$ridenum = $_GET["num"] ;
 	$sql = "SELECT * FROM rides WHERE num = '" . $ridenum . "' ";
-	$qry1 = mysql_query($sql);
-	$row = mysql_fetch_array($qry1);
-    $editride  =  new  Ride($row);
+	$con = connect();
+	if(!($stmt = mysqli_stmt_init($con))){
+		die('Init Failed: ' . mysqli_stmt_error($stmt));
+	}
+	if(!mysqli_stmt_prepare($stmt, "SELECT * FROM rides WHERE num=?")){
+		die('Prep Failed: ' . mysqli_stmt_error($stmt));
+	}
+	if(!mysqli_stmt_bind_param($stmt, 'i', $_GET['num'])){
+		die('Bind Failed: ' . mysqli_stmt_error($stmt));
+	}
+	if(!mysqli_stmt_execute($stmt)){
+		die('Exec Failed: ' . mysqli_stmt_error($stmt));
+	}
+	mysqli_stmt_bind_result($stmt, 
+				$row['num'], 
+				$row['name'],
+				$row['cell'],
+				$row['requested'], 
+				$row['riders'],
+				$row['precar'],
+				$row['car'],
+				$row['pickup'],
+				$row['dropoff'],
+				$row['notes'],
+				$row['clothes'],
+				$row['ridedate'],
+				$row['status'],
+				$row['timetaken'],
+				$row['timeassigned'],
+				$row['timedone'],
+				$row['loc']);
+	mysqli_stmt_fetch($stmt);
+    	$editride  =  new  Ride($row);
 	
     	$rNum = $editride->getAtt('num'); 
     	$rName = $editride->getAtt('name');
@@ -21,11 +50,10 @@
     	$rRiders = $editride->getAtt('riders');
     	$rPickup = $editride->getAtt('pickup');
     	$rDropoff = $editride->getAtt('dropoff');
-    	$rLocation = $editride->getAtt('location');
+    	$rLoc = $editride->getAtt('loc');
     	$rClothes = $editride->getAtt('clothes');
     	$rNotes = $editride->getAtt('notes');
     	$rCar = $editride->getAtt('car'); 
-	$pCar = $editride->getAtt('precar');
     ?>
     
 		<div class="rideform">
@@ -41,41 +69,32 @@
 			<p><label class="left">Where can we pick you up?</label>
 			   <input class="field" name="pickup" value="<?php echo $rPickup; ?>" /></p>
 			<p><label class="left">Where are you staying?</label>
-			   <input class="field" name="dropoff" value="<?php echo $rDropoff; ?>" /></p>
-     			   <p><label class="left">If they live in apartments:</label>
-     			   <select name="aploc" class="combo">
-                		<option value="Null"> <b>Select an Apartment:</b> </option>
-                		<option value="CO"> Charter Oak </option>
-                     		<option value="HTA"> Hill Top </option>
-				<option value="CO"> Charter Oak </option>
- 				<option value="HV"> Husky Village </option>
-                     		<option value="MA"> Mansfield </option>                    		
-				<option value="Car"> Carriage </option>
-				<option value="Ce"> Celeron </option>
-				<option value="HL"> Hunting Lodge </option>
-				<option value="NWA"> Northwood </option>
-				<option value="NWA"> Northwood </option>
-				<option value="NWA"> Northwood </option>
-                     		<option value="Other"> Other </option></select></p>
-			<p><label class="left">If they live in a dorm:</label>
-     			   <select name="dormloc" class="combo">
-                		<option value="Null"> <b>Select a Dorm:</b> </option>
-                		<option value="BS"> Busby Suites </option>
-                     		<option value="E"> East </option>
-                     		<option value="N"> North </option>
-                     		<option value="NW"> NorthWest </option>
-                     		<option value="T"> Towers </option>
-                     		<option value="Al"> Alumni </option>
-                     		<option value="B"> Buckley </option>
-                     		<option value="Gr"> Graduate Housing </option>
-                     		<option value="GS"> Garrigus Suites </option>
-                     		<option value="HT"> Hill Top </option>
-                     		<option value="MM"> McMahon </option>
-                     		<option value="Sh"> Shippee </option>
-                     		<option value="So"> South </option>
-                     		<option value="W"> West </option>
-                     		<option value="Other"> Other </option></select></p>
-
+			   <input class="field" name="dropoff" value="<?php echo $rDropoff; ?>" />
+			<p><label class="left"></label>
+     			   <select name="loc" class="combo">
+                		<option value="Null"> <b>Select a Location:</b> </option>
+            		        <option value="Al" <?php if($row['loc']=='Al'){ echo 'selected'; } ?> > Alumni</option>
+                     		<option value="B" <?php if($row['loc']=='B'){ echo 'selected'; } ?> > Buckley </option>
+                		<option value="BS" <?php if($row['loc']=='BS'){ echo 'selected'; } ?> > Busby Suites </option>
+				<option value="Car" <?php if($row['loc']=='Car'){ echo 'selected'; } ?> > Carriage </option>
+				<option value="Ce" <?php if($row['loc']=='Ce'){ echo 'selected'; } ?> > Celeron </option>
+                		<option value="CO" <?php if($row['loc']=='CO'){ echo 'selected'; } ?> > Charter Oak </option>
+                     		<option value="E" <?php if($row['loc']=='E'){ echo 'selected'; } ?> > East </option>
+                     		<option value="GS" <?php if($row['loc']=='GS'){ echo 'selected'; } ?> > Garrigus Suites </option>
+                     		<option value="Gr" <?php if($row['loc']=='Gr'){ echo 'selected'; } ?> > Graduate Housing </option>
+                     		<option value="HTA" <?php if($row['loc']=='HTA'){ echo 'selected'; } ?> > Hill Top Apartments </option>
+                     		<option value="HT" <?php if($row['loc']=='HT'){ echo 'selected'; } ?> > Hill Top Dorms </option>
+				<option value="HL" <?php if($row['loc']=='HL'){ echo 'selected'; } ?> > Hunting Lodge </option>
+ 				<option value="HV" <?php if($row['loc']=='HV'){ echo 'selected'; } ?> > Husky Village </option>
+                     		<option value="MA" <?php if($row['loc']=='MA'){ echo 'selected'; } ?> > Mansfield </option>                    		
+                     		<option value="MM" <?php if($row['loc']=='MM'){ echo 'selected'; } ?> > McMahon </option>
+				<option value="N" <?php if($row['loc']=='N'){ echo 'selected'; } ?> > North </option>
+                     		<option value="NW" <?php if($row['loc']=='NW'){ echo 'selected'; } ?> > NorthWest </option>
+                     		<option value="Sh" <?php if($row['loc']=='Sh'){ echo 'selected'; } ?> > Shippee </option>
+                     		<option value="So" <?php if($row['loc']=='So'){ echo 'selected'; } ?> > South </option>
+                     		<option value="T" <?php if($row['loc']=='T'){ echo 'selected'; } ?> > Towers </option>
+                     		<option value="W" <?php if($row['loc']=='W'){ echo 'selected'; } ?> > West </option>
+                     		<option value="Other" <?php if($row['loc']=='Other'){ echo 'selected'; } ?> > Other </option></select></p>
 			<p><label class="left">What are you wearing?</label>
 			   <input class="field" name="clothes" value="<?php echo $rClothes; ?>" /></p>
      		<p><label class="left">Any additional information?</label>

@@ -37,7 +37,24 @@
 		die('Exec failed: ' . mysqli_stmt_error($stmt));
 	}
 	$row = array();
-	mysqli_stmt_bind_result($stmt,$row['num'], $row['name'],$row['cell'],$row['requested'], $row['riders'],$row['precar'],$row['car'],$row['pickup'],$row['dropoff'],$row['notes'],$row['clothes'],$row['ridedate'],$row['status'],$row['timetaken'],$row['timeassigned'],$row['timedone'],$row['loc']);
+	mysqli_stmt_bind_result($stmt,
+				$row['num'], 
+				$row['name'],
+				$row['cell'],
+				$row['requested'], 
+				$row['riders'],
+				$row['precar'],
+				$row['car'],
+				$row['pickup'],
+				$row['dropoff'],
+				$row['notes'],
+				$row['clothes'],
+				$row['ridedate'],
+				$row['status'],
+				$row['timetaken'],
+				$row['timeassigned'],
+				$row['timedone'],
+				$row['loc']);
 	while(mysqli_stmt_fetch($stmt)){
 		
 	
