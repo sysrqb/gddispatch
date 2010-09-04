@@ -154,35 +154,51 @@ function tblCell($cell,$ps) {//$ps stands for pickup/status, the two input types
 //returns the amount of time between now and $intime. determines response time is considered short, medium, or long. returns difference.
 function tblCalledIn($intime){
 	global $gtime;
-
 	$gmt = date_parse($gtime);
 	$called = date_parse($intime);
-	$mindiff = abs($gmt['minute'] - $called['minute']);
-	$hourdiff = abs($gmt['hour'] - $called['hour']);
-	
+	$hourdiff = $gmt['hour'] - $called['hour'];
+	$mindiff = $gmt['minute'] - $called['minute'];
+	if($hourdiff>0){
+		if($mindiff<0){
+			$hour = ($gmt['hour'] - 1) - $called['hour'];
+			$min = (60 + $gmt['minute']) - $called['minute'];
+		}
+		else{
+			$hour = $hourdiff;
+			$min = $mindiff;
+		}
+	}
+	else{
+		$hour = $hourdiff;
+		$min = $mindiff;
+	}
+		
 	//$diff = date_diff($gtime, $intime);//get difference between $intime and now
 	//$time = $diff->format('%I');//format difference in hours:minutes format
 	//$interval30 = new DateInterval('PT30M');//create a time interval of 30 minutes, used for comparison
 	//$interval50 = new DateInterval('PT50M');//creates a time interval of 50 minutes, used for comparison
 
-	if($hourdiff > 0){//compare the hours. if $diff has hours greater than 0, time long
+	if($hour > 0){//compare the hours. if $diff has hours greater than 0, time long
 		$tclass = 'long';//time = long
 	}
-	elseif($mindiff < 30){//if hours aren't larger than 0 (which I hope they aren't), compare minutes. if diff is less than 30, time is short
+	elseif($min < 30){//if hours aren't larger than 0 (which I hope they aren't), compare minutes. if diff is less than 30, time is short
 		$tclass = 'short';//time = short
 	}
-	elseif($mindiff < 30){//if time is not less than 30 minutes, maybe it's less than 50 minutes. if so, time is medium
+	elseif($min < 50){//if time is not less than 30 minutes, maybe it's less than 50 minutes. if so, time is medium
 		$tclass = 'med';//time = med
 	}
 	else{
 		$tclass = 'long';//otherwise it's just been way too long
 	}
 	echo '<td><span class="'.$tclass.'">';
-	if($hourdiff > 0){
-		echo "$hourdiff:$mindiff min";
+	if($hour==1){
+		echo "$hour hour $min min </span></td>\r";
+	}
+	elseif($hour>1){
+		echo "$hour hours $min min </span></td>\r";
 	}
 	else{
-		echo "$mindiff min";
+		echo "$min min</span></td>\r";
 	}
 }
 	
@@ -190,29 +206,67 @@ function tblCalledIn($intime){
 //returns the total wait time. determines response time is considered short, medium, or long. returns difference.
 function tblTimeWait($called,$assigned,$done,$status,$pickup) {
 	if ($status=="missed" || $status=="cancelled"){
-		$diff = date_diff($called, $done);//get difference between the time the patron called in and the time the ride was cancelled 
+		$calledin = date_parse($called);//get difference between the time the patron called in and the time the ride was cancelled 
+		$donezed = date_parse($done);
+		$hourdiff = $donezed['hour'] - $calledin['hour'];
+		$mindiff = $donezed['minute'] - $calledin['minute'];
+		if($hourdiff>0){
+			if($mindiff<0){
+				$hour = ($donezed['hour'] - 1) - $calledin['hour'];
+				$min = (60 + $donezed['minute']) - $calledin['minute'];
+			}
+			else{
+				$hour = $hourdiff;
+				$min = $mindiff;
+			}
+		}
+		else{
+			$hour = $hourdiff;
+			$min = $mindiff;
+		}
 	}
 	else{
-		$diff = date_diff($called, $assigned);//get difference between the time the patron called in and the time the ride was assigned
+		$calledin = date_parse($called);//get difference between the time the patron called in and the time the ride was cancelled 
+		$assIgned = date_parse($assigned);
+		$hourdiff = $assIgned['hour'] - $calledin['hour'];
+		$mindiff = $assIgned['minute'] - $calledin['minute'];
+		if($hourdiff>0){
+			if($mindiff<0){
+				$hour = ($assIgned['hour'] - 1) - $calledin['hour'];
+				$min = (60 + $assIgned['minute']) - $calledin['minute'];
+			}
+			else{
+				$hour = $hourdiff;
+				$min = $mindiff;
+			}
+		}
+		else{
+			$hour = $hourdiff;
+			$min = $mindiff;
+		}
 	}
-	$diff = date_format($diff, "%H:%I");//format difference in hours:minutes format
-	$interval30 = new DateInterval('PT30M');//create a time interval of 30 minutes, used for comparison
-	$interval50 = new DateInterval('PT50M');//creates a time interval of 50 minutes, used for comparison
-	if(date_format($diff, '%H') > $interval30->format('%H')){//compare the hours. if $diff has hours greater than 0, time long
+	if($hour > 0){//compare the hours. if $diff has hours greater than 0, time long
 		$tclass = 'long';//time = long
 	}
-	elseif(date_format($diff, '%I') < $interval30->format('%I')){//if hours aren't larger than 0 (which I hope they aren't), compare minutes. if diff is less than 30, time is short
+	elseif($min < 30){//if hours aren't larger than 0 (which I hope they aren't), compare minutes. if diff is less than 30, time is short
 		$tclass = 'short';//time = short
 	}
-	elseif(date_format($diff, '%I') < $interval50->format('%I')){//if time is not less than 30 minutes, maybe it's less than 50 minutes. if so, time is medium
+	elseif($min < 50){//if time is not less than 30 minutes, maybe it's less than 50 minutes. if so, time is medium
 		$tclass = 'med';//time = med
 	}
 	else{
 		$tclass = 'long';//otherwise it's just been way too long
 	}
 	echo '<td><span class="'.$tclass.'">';
-	echo $diff;
-	echo ' min</span></td>'."\r";
+	if($hour==1){
+		echo "$hour hour $min min </span></td>\r";
+	}
+	elseif($hour>1){
+		echo "Too Long";
+	}
+	else{
+		echo "$min min</span></td>\r";
+	}
 }
 
 
@@ -223,37 +277,66 @@ function tblTimeRode($done,$assigned,$status,$pickup) {
 		$diff = '0';
 	}
 	else{
-		$diff = date_diff($done, $assigned);//get difference between the time the patron called in and the time the ride was assigned
-		$diff = date_format($diff, "%H:%I");//format difference in hours:minutes format
-		$interval30 = new DateInterval('PT30M');//create a time interval of 30 minutes, used for comparison
-		$interval50 = new DateInterval('PT50M');//creates a time interval of 50 minutes, used for comparison
-		if(date_format($diff, '%H') > $interval30->format('%H')){//compare the hours. if $diff has hours greater than 0, time long
-			$tclass = 'long';//time = long
-		}
-		elseif(date_format($diff, '%I') < $interval30->format('%I')){//if hours aren't larger than 0 (which I hope they aren't), compare minutes. if diff is less than 30, time is short
-			$tclass = 'short';//time = short
-		}
-		elseif(date_format($diff, '%I') < $interval50->format('%I')){//if time is not less than 30 minutes, maybe it's less than 50 minutes. if so, time is medium
-			$tclass = 'med';//time = med
+		$assIgned = date_parse($assigned);//get difference between the time the patron called in and the time the ride was cancelled 
+		$donezed = date_parse($done);
+		$hourdiff = $donezed['hour'] - $assIgned['hour'];
+		$mindiff = $donezed['minute'] - $assIgned['minute'];
+		if($hourdiff>0){
+			if($mindiff<0){
+				$hour = ($donezed['hour'] - 1) - $assIgned['hour'];
+				$min = (60 + $donezed['minute']) - $assIgned['minute'];
+			}
+			else{
+				$hour = $hourdiff;
+				$min = $mindiff;
+			}
 		}
 		else{
-			$tclass = 'long';//otherwise it's just been way too long
+			$hour = $hourdiff;
+			$min = $mindiff;
 		}
 	}
+	if($hour > 0){//compare the hours. if $diff has hours greater than 0, time long
+		$tclass = 'long';//time = long
+	}
+	elseif($min < 30){//if hours aren't larger than 0 (which I hope they aren't), compare minutes. if diff is less than 30, time is short
+		$tclass = 'short';//time = short
+	}
+	elseif($min < 50){//if time is not less than 30 minutes, maybe it's less than 50 minutes. if so, time is medium
+		$tclass = 'med';//time = med
+	}
+	else{
+		$tclass = 'long';//otherwise it's just been way too long
+	}
 	echo '<td><span class="'.$tclass.'">';
-	echo $diff;
-	echo ' min</span></td>'."\r";
+	if($hour==1){
+		echo "$hour hour $min min </span></td>\r";
+	}
+	elseif($hour>1){
+		echo "Too Long";
+	}
+	elseif($diff=='0'){
+		echo "Cancelled </span></td>\r";
+	}
+	else{
+		echo "$min min</span></td>\r";
+	}
 }
 
 //prints whether or not the patron has arrived home or if they are still intransit. if they have arrived, it states what time they were dropped off.
 function tblHome($tdone,$tstatus) {
 	if ($tstatus=="done") {//if the ride is done 
-		$athome = date_format($tdone, 'H:i');//set the time it finished
+		$done = date_parse($tdone);
+		if($done[hour]<5){
+			$athome = ($done['hour']+19) . ':' . $done['minute'];
+		}
+		else{
+			$athome = ($done['hour']-5) .':'.$done['minute'];
+		}
 	}
 	else {//if not
 		$athome = '-';//null for now
 	}
-	
 	echo '<td>';
 	echo $athome;
 	echo '</td>'."\r";
@@ -276,24 +359,34 @@ function rowColor($i) {
 
 //counts the number of rides pending for the given status
 function checkRideCount($status) {
-	global $prepare, $gtime;
-
-	mysqli_stmt_bind_param($prepare['ridecount'], 'ss', date_format($gtime, 'Y-m-d'), $status);
-	mysqli_stmt_execute($prepare['ridecount']);
-	mysqli_stmt_bind_result($prepare['ridecount'], $count);
-	while(mysqli_stmt_fetch($prepare['ridecount'])){
-		return $count;//return the number of current rides for appropiate status
+	global $gdate;
+	$con = connect();
+	if(!($stmt=mysqli_stmt_init($con))){
+		die('Init Failed: ' . mysqli_stmt_error($stmt));
 	}
+	if(!mysqli_stmt_prepare($stmt, "SELECT * FROM rides WHERE ridedate= ? AND status =?")){
+		die('Prep Failed: ' . mysqli_stmt_error($stmt));
+	}
+	mysqli_stmt_bind_param($stmt, 'ss', $gdate, $status);
+	mysqli_stmt_execute($stmt);
+	mysqli_stmt_store_result($stmt);
+	return mysqli_stmt_num_rows($stmt);
 }
 
 //counts the total number of lives saved
 function checkCount($type) {
-	global $prepare, $gtime;
-
-	mysqli_stmt_bind_param($prepare['totalcount'], 'ss', date_format($gtime, 'Y-m-d'), $status);
-	mysqli_stmt_execute($prepare['totalcount']);
-	mysqli_stmt_bind_result($prepare['totalcount'], $total);
-	while(mysqli_stmt_fetch($prepare['totalcount'])){
+	global $gdate;
+	$con = connect();
+	if(!($stmt=mysqli_stmt_init($con))){
+		die('Init Failed: ' . mysqli_stmt_error($stmt));
+	}
+	if(!mysqli_stmt_prepare($stmt,"SELECT SUM(riders) as total FROM rides WHERE ridedate = ? AND status = ?")){
+		die('Prep Failed: ' . mysqli_stmt_error($stmt));
+	}
+	mysqli_stmt_bind_param($stmt, 'ss', $gdate, $type);
+	mysqli_stmt_execute($stmt);
+	mysqli_stmt_bind_result($stmt, $total);
+	while(mysqli_stmt_fetch($stmt)){
 		return $total;
 	}
 }
@@ -389,7 +482,7 @@ function rideSplit($num,$car,$riders) {
 		die('UPDATE failed: ' . mysqli_stmt_error($stmt));
 	}
 	//this opens the original ride
-	if(!mysqli_stmt_bind_result($stmt,
+	if(!mysqli_stmt_bind_result($stmt, 
 				$row['num'], 
 				$row['name'], 
 				$row['cell'], 
@@ -398,6 +491,7 @@ function rideSplit($num,$car,$riders) {
 				$row['precar'], 
 				$row['car'], 
 				$row['pickup'], 
+				$row['fromloc'], 
 				$row['dropoff'], 
 				$row['notes'], 
 				$row['clothes'], 
@@ -414,46 +508,37 @@ function rideSplit($num,$car,$riders) {
     		$ridersLeft = ($row['riders'] - $riders);
 	}		
 	mysqli_close($con);
+	
+	print_r($row);
 
 	// this creates the duplicate ride
 	$con1 = connect();
 	if(!($stmt1 = mysqli_stmt_init($con1))){
 		die('Init Failed: ' . mysqli_stmt_error($stmt));
 	}
-	if(!mysqli_stmt_prepare($stmt1, "INSERT INTO rides (name,cell,riders,pickup,dropoff,clothes,notes,status,ridedate,timetaken,loc) VALUES (?,?,?,?,?,?,?,?,?,?,?)")){
-		die('Prep Failed: ' . mysqli_stmt_error($stmt));
+	if(!mysqli_stmt_prepare($stmt1, "INSERT INTO rides (name,cell,riders,car,pickup,fromloc,dropoff,notes,clothes,ridedate,status,timetaken,loc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")){
+		die('Prep Failed1: ' . mysqli_stmt_error($stmt1));
 	}
-	$name = "'" . $row['name'] . "'"; 
-	$cell = "'" . $row['cell'] . "'"; 
-	$pickup = "'" . $row['pickup'] . "'";  
-	$dropoff = "'" . $row['dropoff'] . "'"; 
-	$clothes = "'" . $row['clothes'] . "'"; 
-	$notes = "'" . $row['notes'] . "'"; 
-	$status = "'" . $row['status'] . "'"; 
-	$ridedate = "'" . $row['ridedate'] . "'"; 
-	$timetaken = "'" . $row['timetaken'] . "'";
-	$loc = "'" . $row['loc'] . "'";
-	if(!mysqli_stmt_bind_param($stmt1, 's,s,i,s,s,s,s,s,s,s,s',$name,$cell,$ridersLeft,$pickup,$dropoff,$clothes,$notes,$status,$ridedate,$timetaken,$loc)){ 
-		die('Bind Failed: '. 'name ' . $name . ' cell ' . $cell . ' riders ' . $ridersLeft . ' pickup ' . $pickup . ' dropoff ' . $dropoff . ' clothes ' . $clothes . ' notes ' . $notes . ' status ' . $status . ' ridedate ' . $ridedate . ' timetaken ' . $timetaken . ' loc ' . $loc . ' ' . mysqli_stmt_errno($stmt1));
+	if(!mysqli_stmt_bind_param($stmt1, 'ssiisssssssss',$row['name'],$row['cell'],$ridersLeft,$row['car'],$row['pickup'],$row['fromloc'],$row['dropoff'],$row['notes'],$row['clothes'],$row['ridedate'],$row['status'],$row['timetaken'],$row['loc'])){
+		die('Bind Failed: '. 'name: ' . $row['name'] . ' cell: ' . $row['cell']  . ' riders: ' . $ridersLeft . ' car: ' . $row['car'] . ' pickup: ' . $row['pickup'] . ' dropoff: ' . $row['dropoff'] . ' notes: ' . $row['notes'] . ' clothes: ' . $row['clothes'] . ' ridedate: ' . $row['ridedate'] . ' status: ' . $row['status'] . ' timetaken: ' . $row['timetaken'] . ' loc: ' . $row['loc'] . mysqli_stmt_error($stmt1));
 	}	
-
-	if(!mysqli_stmt_execute($stmt)){
-		die('INSERT failed: ' .  print_r($row) . ' ' . $ridersLeft . ' '  . mysqli_stmt_error($stmt));
+	if(!mysqli_stmt_execute($stmt1)){
+		die('INSERT failed: ' .  print_r($row) . ' ' . $ridersLeft . ' '  . mysqli_stmt_error($stmt1));
 	}
-	mysqli_close($con);
+	mysqli_close($con1);
 	// this assigns the intended ride
-	$con = connect();
-	if(!($stmt = mysqli_stmt_init($con))){
-		die('Init Failed: ' . mysqli_stmt_error($stmt));
+	$con2 = connect();
+	if(!($stmt2 = mysqli_stmt_init($con2))){
+		die('Init Failed: ' . mysqli_stmt_error($stmt2));
 	}
-	if(!mysqli_stmt_prepare($stmt,"UPDATE rides SET car =? , riders =?, status = 'riding', timeassigned =? WHERE num=?")){
-		die('Prep Failed: ' . mysqli_stmt_error($stmt));
+	if(!mysqli_stmt_prepare($stmt2,"UPDATE rides SET car =? , riders =?, status = 'riding', timeassigned =? WHERE num=?")){
+		die('Prep Failed2: ' . mysqli_stmt_error($stmt2));
 	}
-	mysqli_stmt_bind_param($stmt, 'iisi', $car, $riders, $gtime, $num);
-	if(!mysqli_stmt_execute($stmt)){
-		die('UPDATE failed: ' . mysqli_stmt_error($stmt));
+	mysqli_stmt_bind_param($stmt2, 'iisi', $car, $riders, $gtime, $num);
+	if(!mysqli_stmt_execute($stmt2)){
+		die('UPDATE failed: ' . mysqli_stmt_error($stmt2));
 	}
-	mysqli_close($con);
+	mysqli_close($con2);
 }
 
 //Edit the ride information
@@ -464,14 +549,15 @@ function rideEdit($num) {
 	if(!($stmt=mysqli_stmt_init($con))){
 		die('Init Failed: ' . mysqli_stmt_error($stmt));
 	}
-	if(!mysqli_stmt_prepare($stmt,"UPDATE rides SET car=?, name=?, cell=?, riders=?, pickup=?, dropoff=?, loc=?, clothes=?, notes=? WHERE num=?")){
+	if(!mysqli_stmt_prepare($stmt,"UPDATE rides SET car=?, name=?, cell=?, riders=?, pickup=?, fromloc=?, dropoff=?, loc=?, clothes=?, notes=? WHERE num=?")){
 		die('Prep Failed: ' . mysqli_stmt_error($stmt));
 	}
-	mysqli_stmt_bind_param($stmt, 'iisisssssi', $_POST['car'],
-								     $_POST['name'],
+	mysqli_stmt_bind_param($stmt, 'ississssssi', $_POST['car'],
+								     $_POST["name"],
 								     $cellnumber,
 								     $_POST['riders'],
 								     $_POST['pickup'],
+								     $_POST['fromloc'],
 								     $_POST['dropoff'],
 								     $_POST['loc'],
 								     $_POST['clothes'],
@@ -488,7 +574,7 @@ function rideEdit($num) {
 	clothes = '" . $_POST["clothes"] . "',
 	notes = '" . $_POST["notes"] . "' WHERE num = '" . $num . "'";*/
 	if(!mysqli_stmt_execute($stmt)){
-		die('UPDATE failed: ' . mysqli_stmt_error($prepare['rideupdate']));
+		die('UPDATE failed: ' . $_POST['name'] . mysqli_stmt_error($stmt));
 	}
 }
 
@@ -501,28 +587,25 @@ function rideAdd() {
 	if(!($stmt = mysqli_stmt_init($con))){
 		die('Initialization failed: ' . isset($con));
 	}
-	//echo "after init \n";
-	$prep = '"' . $prepare['rideadd'] . '"';
-	//echo "Prepare: \n" . $prep . "\n";?> <br><?php
-	//echo '"INSERT INTO rides (name,cell,riders,pickup,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?)"';
-	if(!mysqli_stmt_prepare($stmt, "INSERT INTO rides (name,cell,riders,pickup,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?)")){
+	if(!mysqli_stmt_prepare($stmt, "INSERT INTO rides (name,cell,riders,pickup,fromloc,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")){
 		die('Preparing the statement failed ' .  isset($stmt) . mysqli_stmt_errno($stmt) . ' ' . mysqli_stmt_error($stmt));
 	}
 	//echo "before prep\n";
 	 	//'rideadd' => "INSERT INTO rides (name,cell,riders,pickup,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
 	$cellnumber = $_POST["cell1"].$_POST["cell2"].$_POST["cell3"]; 
 	$waiting = 'waiting';
-	if(!mysqli_stmt_bind_param($stmt, 'ssissssssss', $_POST["name"], 
-								  $cellnumber,
-								  $_POST["pickup"],
-								  $_POST["riders"],
-								  $_POST["dropoff"], 
-								  $_POST["loc"], 
-								  $_POST["clothes"], 
-								  $_POST["notes"], 
-								  $waiting,
-								  $gdate, 
-								  $gtime)){
+	if(!mysqli_stmt_bind_param($stmt, 'ssisssssssss',$_POST["name"], 
+							  $cellnumber,
+							  $_POST["riders"],
+							  $_POST["pickup"],
+							  $_POST["fromloc"],
+							  $_POST["dropoff"], 
+							  $_POST["loc"], 
+							  $_POST["clothes"], 
+							  $_POST["notes"], 
+							  $waiting,
+							  $gdate, 
+							  $gtime)){
 		die('Binding the parameters failed ' .  mysqli_stmt_errno($stmt) . mysqli_stmt_error($stmt));
 	}
 	echo "before exec";
@@ -653,12 +736,19 @@ function rideDone($num) {
 
 //update when the car was last contacted
 function carUpdate() {
-	global $prepare, $gtime;
+	global $gtime,$gdate;
 	$called = 'called';
-	mysqli_stmt_bind_param($prepare['careupdate'], 'i,s,s,s', $_POST["carnum"], 
-								  $called, 
-								  date_format($gtime, 'Y-m-d H:i:s'), 
-								  date_format($gtime, 'Y-m-d H:i:s'));
+	$con = connect();
+	if(!($stmt=mysqli_stmt_init($con))){
+		die('Failed Init ' . mysqli_stmt_error($stmt));
+	}
+	if(!mysqli_stmt_prepare($stmt,"INSERT INTO contacted (carnum,reason,ridedate,contacttime) VALUES (?,?,?,?)")){
+		die('Failed Prep: ' . mysqli_stmt_error($stmt));
+	}
+	mysqli_stmt_bind_param($stmt, 'isss', $_POST["carnum"], 
+						  $called, 
+						  $gdate, 
+						  $gtime);
 	
 /*    $qry = "INSERT INTO contacted (carnum,reason,ridedate,contacttime) VALUES 
     ('".
@@ -667,16 +757,23 @@ function carUpdate() {
     $dateofride."',
     '".date("YmdHis")."')";
 */
-	if(!mysqli_stmt_execute($prepare['carupdate'])){
-		die('INSERT failed: ' . mysqli_stmt_error($prepare['carupdate']));
+	if(!mysqli_stmt_execute($stmt)){
+		die('INSERT failed: ' . mysqli_stmt_error($stmt));
 	}
 }
     
 //update when the car has returned back to the office
 function carHome() {
-	global $prepare, $gtime;
+	global $gdate, $gtime;
 	$home = 'home';
-	mysqli_stmt_bind_param($prepare['careupdate'], 'i,s,s,s', $_POST["carnum"], 
+	$con = connect();
+	if(!($stmt=mysqli_stmt_init($con))){
+		die('Failed Init ' . mysqli_stmt_error($stmt));
+	}
+	if(!mysqli_stmt_prepare($stmt,"INSERT INTO contacted (carnum,reason,ridedate,contacttime) VALUES (?,?,?,?)")){
+		die('Failed Prep: ' . mysqli_stmt_error($stmt));
+	}
+	mysqli_stmt_bind_param($stmt, 'i,s,s,s', $_POST["carnum"], 
 								  $home, 
 								  date_format($gtime, 'Y-m-d H:i:s'), 
 								  date_format($gtime, 'Y-m-d H:i:s'));
@@ -688,10 +785,262 @@ function carHome() {
     $dateofride."',
     '".date("YmdHis")."')";
 */    
-	if(!mysqli_stmt_execute($prepare['carupdate'])){
-		die('INSERT failed: ' . mysqli_stmt_error($prepare['carupdate']));
+	if(!mysqli_stmt_execute($stmt)){
+		die('INSERT failed: ' . mysqli_stmt_error($stmt));
 	}
 }
-    
+
+function carBoxes(){
+	global $gdate,$gtime;
+
+	$carsMaxBase = 7;
+	$cars = array();
+	$carsMax = $carsMaxBase;
+	$con = connect();
+
+// Generates a box for the car, and loops for each car
+	for ($i=1; $i<=$carsMax; $i++){
+		$cars[] = $i;
+		$carsDoneTime=2;
+		$carsRidingTime=2;
+		$carsContactTime = 2;
+
+// Looks up the last action of done (will detect a circuit car)
+		if(!($stmt=mysqli_stmt_init($con))){
+			die('Init1 Failed: ' . mysqli_stmt_error($stmt));
+		}
+		if(!mysqli_stmt_prepare($stmt, "SELECT timedone, pickup FROM rides WHERE ridedate=? AND car =? ORDER BY timedone")){
+			die('Prep1 Failed: . ' . mysqli_stmt_error($stmt));
+		}
+		if(!mysqli_stmt_bind_param($stmt, 'si', $gdate, $i)){
+			die('Bind Failed: ' . mysqli_stmt_error($stmt));
+		}
+		if(!mysqli_stmt_execute($stmt)){
+			die('Exec Failed: ' . mysqli_stmt_error($stmt));
+		}
+		if(!mysqli_stmt_bind_result($stmt, $row['timedone'], $row['pickup'])){
+			die('Bind Res Failed: ' . mysqli_stmt_error($stmt));
+		}
+		while(mysqli_stmt_fetch($stmt)){
+			$carDoneTime = date_parse($row['timedone']);
+			$carsPickup = date_parse($row['pickup']);
+		}
+/*$cSql = "SELECT timedone, pickup FROM rides WHERE ".$datecheck." AND car = ".$cars[$i]." ORDER BY timedone";
+		$cQry = mysql_query($cSql);
+		while ($row = mysql_fetch_array($cQry)) {
+		if ($row['timedone']==NULL)
+			$carsDoneTime = 1;
+		else
+			$carsDoneTime = $row['timedone'];
+			$carsPickup = $row['pickup'];}*/
+
+// Looks up the last action of done (will detect a circuit car)
+		if(!($stmt=mysqli_stmt_init($con))){
+			die('Init1 Failed: ' . mysqli_stmt_error($stmt));
+		}
+		if(!mysqli_stmt_prepare($stmt, "SELECT timeassigned FROM rides WHERE ridedate=? AND car =? ORDER BY timeassigned")){
+			die('Prep1 Failed: . ' . mysqli_stmt_error($stmt));
+		}
+		if(!mysqli_stmt_bind_param($stmt, 'si', $gdate, $i)){
+			die('Bind Failed: ' . mysqli_stmt_error($stmt));
+		}
+		if(!mysqli_stmt_execute($stmt)){
+			die('Exec Failed: ' . mysqli_stmt_error($stmt));
+		}
+		if(!mysqli_stmt_bind_result($stmt, $row['timeassigned'])){
+			die('Bind Res Failed: ' . mysqli_stmt_error($stmt));
+		}
+		while(mysqli_stmt_fetch($stmt)){
+			$carAssignedTime = date_parse($row['timeassigned']);
+		}
+/*$cSql = "SELECT timeassigned FROM rides WHERE ".$datecheck." AND car = ".$cars[$i]." ORDER BY timeassigned";
+		$cQry = mysql_query($cSql);
+		while ($row = mysql_fetch_array($cQry)) {
+		if ($row['timeassigned']==NULL)
+			$carsRidingTime = 1;
+		else
+			$carsRidingTime = $row['timeassigned'];}*/
+
+	// Looks up the last action if executed by 
+		if(!($stmt=mysqli_stmt_init($con))){
+			die('Init1 Failed: ' . mysqli_stmt_error($stmt));
+		}
+		if(!mysqli_stmt_prepare($stmt, "SELECT contacttime,reason FROM contacted WHERE contacttime=? AND carnum =? ORDER BY contacttime")){
+			die('Prep1 Failed: . ' . mysqli_stmt_error($stmt));
+		}
+		if(!mysqli_stmt_bind_param($stmt, 'si', $gdate, $i)){
+			die('Bind Failed: ' . mysqli_stmt_error($stmt));
+		}
+		if(!mysqli_stmt_execute($stmt)){
+			die('Exec Failed: ' . mysqli_stmt_error($stmt));
+		}
+		if(!mysqli_stmt_bind_result($stmt, $row['contacttime'],$row['reason'])){
+			die('Bind Res Failed: ' . mysqli_stmt_error($stmt));
+		}
+		while(mysqli_stmt_fetch($stmt)){
+			$carContactTime = $row['contacttime'];
+			$carContactTime = date_parse($carContactTime);
+			$carsContactReason = $row['reason'];
+		}
+		if($row['contacttime']==NULL){
+			$carContactTime = 0;
+		}
+/*$cSql = "SELECT contacttime, reason FROM contacted WHERE contacttime > DATE_SUB(FROM_UNIXTIME(". date("U") ."), INTERVAL 8 HOUR) AND carnum = ".$cars[$i]." ORDER BY contacttime";
+		$cQry = mysql_query($cSql);
+		while ($row = mysql_fetch_array($cQry)) {
+		if ($row['contacttime']==NULL)
+			$carsContactTime = 1;
+		else
+			$carsContactTime = $row['contacttime'];
+			$carsContactReason = $row['reason'];}		*/
+	
+		if($carsRidingTime['year']==0){//If car is not being used and has never given a ride
+			if($carsDoneTime['year']==0){
+				$carTime=0;
+			}
+			else{
+				$carTime=$carsDoneTime;
+			}
+		}
+		else{
+			$carTime=$carsRidingTime;
+		}
+		//echo $carTime;
+		
+		$gmt = date_parse($gtime);
+		$hourdiff = $gmt['hour'] - $carTime['hour'];
+		$mindiff = $gmt['minute'] - $carTime['minute'];
+	if($carContactTime>0){
+		if($hourdiff>0){
+			if($mindiff<0){
+				$hour = ($gmt['hour'] - 1) - $carTime['hour'];
+				$min = (60 + $gmt['minute']) - $carTime['minute'];
+			}
+			else{
+				$hour = $hourdiff;
+				$min = $mindiff;
+			}
+		}
+		else{
+			$hour = $hourdiff;
+			$min = $mindiff;
+		}	
+	}
+		$hourdiff = $gmt['hour'] - $carContactTime['hour'];
+		$mindiff = $gmt['minute'] - $carContactTime['minute'];
+	if($hourdiff>0){
+		if($mindiff<0){
+			$conthour = ($gmt['hour'] - 1) - $carContactTime['hour'];
+			$contmin = (60 + $gmt['minute']) - $carContactTime['minute'];
+		}
+		else{
+			$conthour = $hourdiff;
+			$contmin = $mindiff;
+		}
+	}
+	else{
+		$conthour = $hourdiff;
+		$contmin = $mindiff;
+	}	
+	if($carContactTime['hour']>0){
+		$ridetimeCont = $carContactTime['hour'].':'.$carContactTime['minute'];
+	}
+	else{
+		$ridetimeCont = $carContactTime['minute'];
+	}
+	if($carTime['hour']>0){
+		$carsTime = $carTime['hour'].':'.$ccarTime['minute'];
+	}
+	else{
+		$carsTime = $carTime['minute'];
+	}
+	//$carsTime = max($carsRidingTime,$carsDoneTime);
+	//$ridetimeCont = substr($carsContactTime,8,2)*720+substr($carsContactTime,11,2)*60+substr($carsContactTime,14,2);
+	if($conthour>0){
+		$carsContDiff = $conthour.':'.$contmin;
+	}
+	else{
+		$carsContDiff = $contmin;
+	}
+	//$ridetime = substr($carsTime,8,2)*720+substr($carsTime,11,2)*60+substr($carsTime,14,2);
+	if($carContactTime>0){
+		if($hour>0){
+			$carsTimeDiff = $hour.':'.$min;
+		}
+		else{
+			$carsTimeDiff = $min;
+		}
+	}
+	//$carsTimeDiff = $currtime - $ridetime;
+	//$carsContDiff = $currtime - $ridetimeCont;
+	
+	// Sets status for car Still Here
+	$carsStatus = "car-here";
+	$textLine1 = '<h2>Car '.$i.' is Not Out</h2>';
+	$textLine2 = '';
+	$textLine3 = '';
+	$textLine4 = '';
+	
+	// Sets status for normal car	
+	if  ($carsTime==0 && $carsTime==$carsRidingTime) {
+			$carsStatus = "car-normal";			
+			$textLine1 = '<h2>Car '.$i.' is on a Ride</h2>';
+			$textLine2 = '<h3>It was assigned</h3>';}
+	// Sets status for chilling
+	elseif  ($carsTime==0 && $carsTime==$carsDoneTime){
+			$carsStatus = "car-chill";			
+			$textLine1 = '<h2>Car '.$i.' is Chilling</h2>';
+			$textLine2 = '<h3>It was last done </h3>';}
+			
+	$carsStatusLast = $carsStatus;
+			
+	if ($carsStatus=="car-normal" && $carsTimeDiff>60) {
+			$carsStatus = "car-call";}
+	elseif ($carsStatus=="car-chill" && $carsTimeDiff>60) {
+			$carsStatus = "car-call";}
+	
+	if ($carsStatus<>"car-here"){
+		$textLine3 = '<h3>'.$carsTimeDiff.' minutes ago</h3>';}
+	
+	if($carContactTime>0){		
+		if ($carsContDiff<$carsTimeDiff && $carsContactReason=='called') {
+				$carsStatus = $carsStatusLast;
+				$textLine4 = '<h3 style="font-weight:bold;">Spoke '.$carsContDiff.' mins ago</h3>';
+		}
+		elseif ($carsContDiff<$carsTimeDiff  && $carsContactReason=='home') {
+				$carsStatus = "car-done";			
+				$textLine1 = '<h2>Car '.$i.' is Back Home</h2>';
+				$textLine2 = '';
+				$textLine3 = '';
+		}
+	}
+	
+	
+	
+		$carBoxText = '<div id="car'.$i.'" class="c car-box '.$carsStatus.'" onClick="'.
+				"carsEdit('car".$i."','".$i."','cars_edit.php?carnum=".$i."')".
+				';">'.$textLine1.$textLine2.$textLine3.$textLine4.'</div>';
+		
+		echo $carBoxText;	
+	}
+	mysqli_close($con);
+}
+   
+
+function loginLdap($username, $password){
+	global $ldapserver;
+	$conserver = ldap_connect($ldapserver['host']) //$ldapserver is defined in creds.php
+		or die("Could not establish connection with server: $ldapserver");
+	if($conserver){
+		if($ldapbind = ldap_bind($conserver,$dun,$pass)){
+			echo "Bind Successful";
+		}
+		else{
+			echo "Bind Failed";
+		}
+	}
+}
+
+	
 
 ?>

@@ -43,7 +43,7 @@ for($bench = 0; $bench < 3; $bench++)
 				  }
 
 */
-	$prepare['ridecount'] = 'mysqli_stmt_prepare($con, "SELECT * FROM rides WHERE DATE(ridedate) = ? AND status =?")'; 
+//	$prepare['ridecount'] = 'mysqli_stmt_prepare($con, "SELECT * FROM rides WHERE DATE(ridedate) = ? AND status =?")'; 
 /*		 'totalcount' => "mysqli_stmt_prepare($con, "SELECT SUM(riders) as total FROM rides WHERE ridedate = ? AND status = ?")",
 		 'setpreride' => "mysqli_stmt_prepare($con, "UPDATE rides SET precar = ?, status = 'waiting' WHERE num=?")",
 		 'getpreride' => "mysqli_stmt_prepare($con, "SELECT precar FROM rides WHERE num=?")",
@@ -58,5 +58,8 @@ for($bench = 0; $bench < 3; $bench++)
 		 'ridedone' => "mysqli_stmt_prepare($con, "UPDATE rides SET status='done', timedone=? WHERE num=?")",
 		 'carupdate' => "mysqli_stmt_prepare($con, "INSERT INTO contacted (carnum,reason,ridedate,contacttime) VALUES (?,?,?,?)")",
 		);*/
-	print_r($prepare);
+//	print_r($prepare);
+include('functions.php');
+//rideSplit(9, 2, 2);
+carBoxes();
 ?>

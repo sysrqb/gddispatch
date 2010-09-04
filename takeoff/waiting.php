@@ -46,6 +46,7 @@
 				$row['precar'],
 				$row['car'],
 				$row['pickup'],
+				$row['fromloc'],
 				$row['dropoff'],
 				$row['notes'],
 				$row['clothes'],

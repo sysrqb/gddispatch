@@ -1,5 +1,5 @@
 <?php require("classes.php"); ?>
-<?php include("cars_functions.php"); ?>
+<?php //include("cars_functions.php"); ?>
 <?php $pgId = "cars"; ?>
 <?php include("layout_top.php"); ?>
 	

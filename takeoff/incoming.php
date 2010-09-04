@@ -16,9 +16,34 @@
 			   <input class="number" name="riders" maxlength="2" autocomplete=off /></p>
 			<p><label class="left">Where can we pick you up?</label>
 			   <input class="field" name="pickup" /></p>
+			<p><label class="left"></label>
+     			   <select name="fromloc" class="combo">
+                		<option value="Null"> <b>Select a Location:</b> </option>
+            		        <option value="Al"> Alumni </option>
+                     		<option value="B"> Buckley </option>
+                		<option value="BS"> Busby Suites </option>
+				<option value="Car"> Carriage </option>
+				<option value="Ce"> Celeron </option>
+                		<option value="CO"> Charter Oak </option>
+                     		<option value="E"> East </option>
+                     		<option value="GS"> Garrigus Suites </option>
+                     		<option value="Gr"> Graduate Housing </option>
+                     		<option value="HTA"> Hill Top Apartments </option>
+                     		<option value="HT"> Hill Top Dorms </option>
+				<option value="HL"> Hunting Lodge </option>
+ 				<option value="HV"> Husky Village </option>
+                     		<option value="MA"> Mansfield </option>                    		
+                     		<option value="MM"> McMahon </option>
+				<option value="N"> North </option>
+                     		<option value="NW"> NorthWest </option>
+                     		<option value="Sh"> Shippee </option>
+                     		<option value="So"> South </option>
+                     		<option value="T"> Towers </option>
+                     		<option value="W"> West </option>
+                     		<option value="Other"> Other </option></select></p>
 			<p><label class="left">Where are you staying?</label>
 			   <input class="field" name="dropoff" /></p>
-			<p><label class="left">If they live in apartments:</label>
+			<p><label class="left"></label>
      			   <select name="loc" class="combo">
                 		<option value="Null"> <b>Select a Location:</b> </option>
             		        <option value="Al"> Alumni </option>
