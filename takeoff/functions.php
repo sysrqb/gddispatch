@@ -331,7 +331,7 @@ function tblHome($tdone,$tstatus) {
 			$athome = ($done['hour']+19) . ':' . $done['minute'];
 		}
 		else{
-			$athome = ($done['hour']-5) .':'.$done['minute'];
+			$athome = ($done['hour']-4) .':'.$done['minute'];
 		}
 	}
 	else {//if not
@@ -793,7 +793,7 @@ function carHome() {
 function carBoxes(){
 	global $gdate,$gtime;
 
-	$carsMaxBase = 7;
+	$carsMaxBase = 8;
 	$cars = array();
 	$carsMax = $carsMaxBase;
 	$con = connect();
@@ -823,7 +823,9 @@ function carBoxes(){
 		}
 		while(mysqli_stmt_fetch($stmt)){
 			$carDoneTime = date_parse($row['timedone']);
+		//	echo "\n Done Year Fetch: " . $carDoneTime['year']." \n";
 			$carsPickup = date_parse($row['pickup']);
+		//	echo "\n Pickup Year Fetch: ". $carsPickup['year'] ."\n";
 		}
 /*$cSql = "SELECT timedone, pickup FROM rides WHERE ".$datecheck." AND car = ".$cars[$i]." ORDER BY timedone";
 		$cQry = mysql_query($cSql);
@@ -851,7 +853,8 @@ function carBoxes(){
 			die('Bind Res Failed: ' . mysqli_stmt_error($stmt));
 		}
 		while(mysqli_stmt_fetch($stmt)){
-			$carAssignedTime = date_parse($row['timeassigned']);
+			$carRidingTime = date_parse($row['timeassigned']);
+		//	echo "\n Ride Year Fetch: ". $carRidingTime['year']." \n";
 		}
 /*$cSql = "SELECT timeassigned FROM rides WHERE ".$datecheck." AND car = ".$cars[$i]." ORDER BY timeassigned";
 		$cQry = mysql_query($cSql);
@@ -893,28 +896,32 @@ function carBoxes(){
 		else
 			$carsContactTime = $row['contacttime'];
 			$carsContactReason = $row['reason'];}		*/
-	
-		if($carsRidingTime['year']==0){//If car is not being used and has never given a ride
-			if($carsDoneTime['year']==0){
-				$carTime=0;
+//ridingtime and carsdonetime does not change for each car
+		if($carRidingTime['year']==0){//If car is not being used and has never given a ride
+			if($carDoneTime['year']==0){
+				$carsTime=0;
 			}
 			else{
-				$carTime=$carsDoneTime;
+				$carsTime=$carDoneTime;
+				echo "\n carsTime1 \n";
 			}
 		}
 		else{
-			$carTime=$carsRidingTime;
+			$carsTime=$carRidingTime;
+			echo "\n carsTime2 " . $carDoneTime['minute'] . "\n";
 		}
-		//echo $carTime;
+		//echo "\nRide Year: " . $carRidingTime['year']  . "Done Year: " . $carDoneTime['year'] . "\n";
+		//print_r($carTime);
+		//echo "\n carsTime: " . $carsTime['year'] . "\n";
 		
 		$gmt = date_parse($gtime);
-		$hourdiff = $gmt['hour'] - $carTime['hour'];
-		$mindiff = $gmt['minute'] - $carTime['minute'];
+		$hourdiff = $gmt['hour'] - $carsTime['hour'];
+		$mindiff = $gmt['minute'] - $carsTime['minute'];
 	if($carContactTime>0){
 		if($hourdiff>0){
 			if($mindiff<0){
-				$hour = ($gmt['hour'] - 1) - $carTime['hour'];
-				$min = (60 + $gmt['minute']) - $carTime['minute'];
+				$hour = ($gmt['hour'] - 1) - $carsTime['hour'];
+				$min = (60 + $gmt['minute']) - $carsTime['minute'];
 			}
 			else{
 				$hour = $hourdiff;
@@ -948,11 +955,11 @@ function carBoxes(){
 	else{
 		$ridetimeCont = $carContactTime['minute'];
 	}
-	if($carTime['hour']>0){
-		$carsTime = $carTime['hour'].':'.$ccarTime['minute'];
+	if($carsTime['hour']>0){
+		$carTime = $carsTime['hour'].':'.$carsTime['minute'];
 	}
 	else{
-		$carsTime = $carTime['minute'];
+		$carTime = $carsTime['minute'];
 	}
 	//$carsTime = max($carsRidingTime,$carsDoneTime);
 	//$ridetimeCont = substr($carsContactTime,8,2)*720+substr($carsContactTime,11,2)*60+substr($carsContactTime,14,2);
@@ -980,28 +987,32 @@ function carBoxes(){
 	$textLine2 = '';
 	$textLine3 = '';
 	$textLine4 = '';
-	
+
+	echo "\n carsTime: " . $carsTime['year'] . " ==Riding: " . $carsTime==$carRidingTime;
+	echo "\n carsTime: " . $carsTime['year'] . " ==Done: " . $carsTime==$carDoneTime;
 	// Sets status for normal car	
-	if  ($carsTime==0 && $carsTime==$carsRidingTime) {
+	if  ($carsTime['year']>0 && $carsTime==$carRidingTime) {
 			$carsStatus = "car-normal";			
 			$textLine1 = '<h2>Car '.$i.' is on a Ride</h2>';
-			$textLine2 = '<h3>It was assigned</h3>';}
+			$textLine2 = '<h3>It was assigned</h3>';
+	}
 	// Sets status for chilling
-	elseif  ($carsTime==0 && $carsTime==$carsDoneTime){
+	elseif  ($carsTime['year']>0 && $carsTime==$carDoneTime){
 			$carsStatus = "car-chill";			
 			$textLine1 = '<h2>Car '.$i.' is Chilling</h2>';
-			$textLine2 = '<h3>It was last done </h3>';}
+			$textLine2 = '<h3>It was last done </h3>';
+	}
 			
 	$carsStatusLast = $carsStatus;
-			
-	if ($carsStatus=="car-normal" && $carsTimeDiff>60) {
-			$carsStatus = "car-call";}
-	elseif ($carsStatus=="car-chill" && $carsTimeDiff>60) {
-			$carsStatus = "car-call";}
-	
-	if ($carsStatus<>"car-here"){
-		$textLine3 = '<h3>'.$carsTimeDiff.' minutes ago</h3>';}
-	
+	if($carsContactTime>0){
+		if ($carsStatus=="car-normal" && $carsTimeDiff>60) {
+				$carsStatus = "car-call";}
+		elseif ($carsStatus=="car-chill" && $carsTimeDiff>60) {
+				$carsStatus = "car-call";}
+		
+		if ($carsStatus<>"car-here"){
+			$textLine3 = '<h3>'.$carsTimeDiff.' minutes ago</h3>';}
+	}
 	if($carContactTime>0){		
 		if ($carsContDiff<$carsTimeDiff && $carsContactReason=='called') {
 				$carsStatus = $carsStatusLast;

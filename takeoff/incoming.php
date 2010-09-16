@@ -79,10 +79,10 @@
 		<div class="instructions">
 			<fieldset><legend>&nbsp;Instructions&nbsp;</legend>
 			<p>When covering the incoming line, here are a few guidelines to follow:</p>
-			<p>Answer the phone <b>"GUARD Dogs! Can we be your safe ride tonight?"</b> and begin asking the questions once the patron has confirmed they want a ride.</p>
+			<p>Answer the phone <b>"Hello, GUARD Dogs! Can we be your safe ride tonight?"</b> and begin asking the questions once the patron has confirmed they want a ride.</p>
 			<p>If you can't understand the patron on the phone because it is too loud where they are ask them politely to find a quieter area.</p>
 			<p>If someone calls asking to be taken home but you suspect they are going to a party explain that we don't take patrons to parties, only return them to where they live.</p>
-			<p>If it is still early in the night (before 12 a.m.) and someone requests a ride to Carriage tell them that they will need to show their residence ID card when they are picked up.</p>
+			<p>If it is still early in the night (before 12 a.m.) and someone requests a ride to Carriage or Celeron tell them that they will need to show their residence ID card when they are picked up.</p>
 			<p>If you have ANY questions, please ask the Supervisor - <b>that's why they're there!</b>.</p>
 			<br />
 			<p>But most importantly, <b>HAVE FUN!</b></p>

@@ -19,8 +19,8 @@
 		<th>Pickup</th>
 		<th>Dropoff</th>
 		<th>Cell</th>
-		<th style="width:60px;">Waited</th>
-		<th style="width:60px;">Rode</th>
+		<th style="width:100px;">Waited</th>
+		<th style="width:100px;">Rode</th>
 		<th>Home At</th>
 	</tr>
 	<?php

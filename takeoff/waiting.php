@@ -9,7 +9,7 @@
 
 <table class="program">
 	<tr>
-		<th>Pre-Assign</th>
+		<th>Preassign</th>
 		<th>Assign</th>
 		<th>Split</th>
 		<th>Edit</th>
