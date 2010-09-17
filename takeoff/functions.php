@@ -853,7 +853,7 @@ function carBoxes(){
 			die('Bind Res Failed: ' . mysqli_stmt_error($stmt));
 		}
 		while(mysqli_stmt_fetch($stmt)){
-			$carRidingTime = date_parse($row['timeassigned']);
+			$carsRidingTime = date_parse($row['timeassigned']);
 		//	echo "\n Ride Year Fetch: ". $carRidingTime['year']." \n";
 		}
 /*$cSql = "SELECT timeassigned FROM rides WHERE ".$datecheck." AND car = ".$cars[$i]." ORDER BY timeassigned";
@@ -868,7 +868,7 @@ function carBoxes(){
 		if(!($stmt=mysqli_stmt_init($con))){
 			die('Init1 Failed: ' . mysqli_stmt_error($stmt));
 		}
-		if(!mysqli_stmt_prepare($stmt, "SELECT contacttime,reason FROM contacted WHERE contacttime=? AND carnum =? ORDER BY contacttime")){
+		if(!mysqli_stmt_prepare($stmt, "SELECT contacttime,reason FROM contacted WHERE ridedate=? AND carnum =? ORDER BY contacttime ASC")){
 			die('Prep1 Failed: . ' . mysqli_stmt_error($stmt));
 		}
 		if(!mysqli_stmt_bind_param($stmt, 'si', $gdate, $i)){
@@ -881,13 +881,14 @@ function carBoxes(){
 			die('Bind Res Failed: ' . mysqli_stmt_error($stmt));
 		}
 		while(mysqli_stmt_fetch($stmt)){
-			$carContactTime = $row['contacttime'];
-			$carContactTime = date_parse($carContactTime);
+			$carsContactTime = $row['contacttime'];
+			$carsContactTime = date_parse($carsContactTime);
 			$carsContactReason = $row['reason'];
 		}
 		if($row['contacttime']==NULL){
-			$carContactTime = 0;
+			$carsContactTime = 0;
 		}
+		//	echo "\n Contact time = " . $carsContactTime['minute'] . "\n";
 /*$cSql = "SELECT contacttime, reason FROM contacted WHERE contacttime > DATE_SUB(FROM_UNIXTIME(". date("U") ."), INTERVAL 8 HOUR) AND carnum = ".$cars[$i]." ORDER BY contacttime";
 		$cQry = mysql_query($cSql);
 		while ($row = mysql_fetch_array($cQry)) {
@@ -897,18 +898,18 @@ function carBoxes(){
 			$carsContactTime = $row['contacttime'];
 			$carsContactReason = $row['reason'];}		*/
 //ridingtime and carsdonetime does not change for each car
-		if($carRidingTime['year']==0){//If car is not being used and has never given a ride
-			if($carDoneTime['year']==0){
+		if($carsRidingTime['year']==0){//If car is not being used and has never given a ride
+			if($carsDoneTime['year']==0){
 				$carsTime=0;
 			}
 			else{
-				$carsTime=$carDoneTime;
+				$carsTime=$carsDoneTime;
 				echo "\n carsTime1 \n";
 			}
 		}
 		else{
-			$carsTime=$carRidingTime;
-			echo "\n carsTime2 " . $carDoneTime['minute'] . "\n";
+			$carsTime=$carsRidingTime;
+			echo "\n carsTime2 = " . $carsDoneTime['minute'] . "\n";
 		}
 		//echo "\nRide Year: " . $carRidingTime['year']  . "Done Year: " . $carDoneTime['year'] . "\n";
 		//print_r($carTime);
@@ -917,7 +918,7 @@ function carBoxes(){
 		$gmt = date_parse($gtime);
 		$hourdiff = $gmt['hour'] - $carsTime['hour'];
 		$mindiff = $gmt['minute'] - $carsTime['minute'];
-	if($carContactTime>0){
+	if($carsContactTime!=0){
 		if($hourdiff>0){
 			if($mindiff<0){
 				$hour = ($gmt['hour'] - 1) - $carsTime['hour'];
@@ -933,12 +934,12 @@ function carBoxes(){
 			$min = $mindiff;
 		}	
 	}
-		$hourdiff = $gmt['hour'] - $carContactTime['hour'];
-		$mindiff = $gmt['minute'] - $carContactTime['minute'];
+		$hourdiff = $gmt['hour'] - $carsContactTime['hour'];
+		$mindiff = $gmt['minute'] - $carsContactTime['minute'];
 	if($hourdiff>0){
 		if($mindiff<0){
-			$conthour = ($gmt['hour'] - 1) - $carContactTime['hour'];
-			$contmin = (60 + $gmt['minute']) - $carContactTime['minute'];
+			$conthour = ($gmt['hour'] - 1) - $carsContactTime['hour'];
+			$contmin = (60 + $gmt['minute']) - $carsContactTime['minute'];
 		}
 		else{
 			$conthour = $hourdiff;
@@ -949,11 +950,11 @@ function carBoxes(){
 		$conthour = $hourdiff;
 		$contmin = $mindiff;
 	}	
-	if($carContactTime['hour']>0){
-		$ridetimeCont = $carContactTime['hour'].':'.$carContactTime['minute'];
+	if($carsContactTime!=0){
+		$ridetimeCont = $carsContactTime['hour'].':'.$carsContactTime['minute'];
 	}
 	else{
-		$ridetimeCont = $carContactTime['minute'];
+		$ridetimeCont = $carsContactTime['minute'];
 	}
 	if($carsTime['hour']>0){
 		$carTime = $carsTime['hour'].':'.$carsTime['minute'];
@@ -970,13 +971,14 @@ function carBoxes(){
 		$carsContDiff = $contmin;
 	}
 	//$ridetime = substr($carsTime,8,2)*720+substr($carsTime,11,2)*60+substr($carsTime,14,2);
-	if($carContactTime>0){
+	if($carsContactTime!=0){
 		if($hour>0){
 			$carsTimeDiff = $hour.':'.$min;
 		}
 		else{
 			$carsTimeDiff = $min;
 		}
+	//	echo "\n" . $carsTimeDiff . "\n"; 
 	}
 	//$carsTimeDiff = $currtime - $ridetime;
 	//$carsContDiff = $currtime - $ridetimeCont;
@@ -987,24 +989,25 @@ function carBoxes(){
 	$textLine2 = '';
 	$textLine3 = '';
 	$textLine4 = '';
+//UNCOMMENT WHEN DONE
+	//echo "\n carsTime: " . $carsTime['year'] . " ==Riding: " . $carsTime==$carsRidingTime;
+	//echo "\n carsTime: " . $carsTime['year'] . " ==Done: " . $carsTime==$carsDoneTime;
 
-	echo "\n carsTime: " . $carsTime['year'] . " ==Riding: " . $carsTime==$carRidingTime;
-	echo "\n carsTime: " . $carsTime['year'] . " ==Done: " . $carsTime==$carDoneTime;
 	// Sets status for normal car	
-	if  ($carsTime['year']>0 && $carsTime==$carRidingTime) {
+	if  ($carsTime['year']>0 && $carsTime==$carsRidingTime) {
 			$carsStatus = "car-normal";			
 			$textLine1 = '<h2>Car '.$i.' is on a Ride</h2>';
 			$textLine2 = '<h3>It was assigned</h3>';
 	}
 	// Sets status for chilling
-	elseif  ($carsTime['year']>0 && $carsTime==$carDoneTime){
+	elseif  ($carsTime['year']>0 && $carsTime==$carsDoneTime){
 			$carsStatus = "car-chill";			
 			$textLine1 = '<h2>Car '.$i.' is Chilling</h2>';
 			$textLine2 = '<h3>It was last done </h3>';
 	}
 			
 	$carsStatusLast = $carsStatus;
-	if($carsContactTime>0){
+	if($carsContactTime!=0){
 		if ($carsStatus=="car-normal" && $carsTimeDiff>60) {
 				$carsStatus = "car-call";}
 		elseif ($carsStatus=="car-chill" && $carsTimeDiff>60) {
@@ -1013,7 +1016,7 @@ function carBoxes(){
 		if ($carsStatus<>"car-here"){
 			$textLine3 = '<h3>'.$carsTimeDiff.' minutes ago</h3>';}
 	}
-	if($carContactTime>0){		
+	if($carsContactTime!=0){		
 		if ($carsContDiff<$carsTimeDiff && $carsContactReason=='called') {
 				$carsStatus = $carsStatusLast;
 				$textLine4 = '<h3 style="font-weight:bold;">Spoke '.$carsContDiff.' mins ago</h3>';
