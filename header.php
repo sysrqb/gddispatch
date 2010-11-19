@@ -1,9 +1,14 @@
 <?php 
-  Header('Cache-Control: no-cache');
-  Header('Pragma: no-cache');
+	// Header('Cache-Control: no-cache');
+	// Header('Pragma: no-cache');
+	require('functions.php');
+	//establish connection to MYSQL server
+  	 
+	$con = connect();
+
 ?>
 <div class="header">
-	<center><h1>GUARD Dogs Dispatch <?php echo gmdate("G:i Z") ?></h1></center>
+	<center><h1>GUARD Dogs Dispatch </h1></center>
 	</div>
 	<div class="navbar">
 	<ul>

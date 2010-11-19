@@ -1,15 +1,10 @@
 <?php
   // This include the functions, classes, and db connection 
   include("classes.php");
+//  include('functions.php');
 
   $pgId = "done";
   include("layout_top.php");
-
-
-if ( isset($_GET['oday']) ) {
-	$dateofride = date("Ymd", mktime(date("H")-12, date("i"), date("s"), $_GET['omonth'], $_GET['oday'],$_GET['oyear']))."000000";
-}
-
 
   ?>
 
@@ -24,25 +19,60 @@ if ( isset($_GET['oday']) ) {
 		<th>Pickup</th>
 		<th>Dropoff</th>
 		<th>Cell</th>
-		<th style="width:60px;">Waited</th>
-		<th style="width:60px;">Rode</th>
+		<th style="width:100px;">Waited</th>
+		<th style="width:100px;">Rode</th>
 		<th>Home At</th>
 	</tr>
 	<?php
-	$filterCar = "";
-	if ($_GET['car']<>"") {$filterCar = ' AND car='.$_GET['car'].' ';}
+//	$filterCar = "";
+//	if ($_GET['car']<>"") {$filterCar = ' AND car='.$_GET['car'].' ';}
 	
-	$sql = "SELECT * FROM rides WHERE ridedate = ".$dateofride." AND (status = 'done' OR status = 'cpmissed' OR status = 'cancelled') ".$filterCar." ORDER BY status,car,timedone ASC";
-	$qry = mysql_query($sql);
+//	$sql = "SELECT * FROM rides WHERE ridedate = ".$dateofride." AND (status = 'done' OR status = 'cpmissed' OR status = 'cancelled') ".$filterCar." ORDER BY status,car,timedone ASC";
+	$con = connect();
+	if(!($stmt = mysqli_stmt_init($con))){
+		die('Failed Init: ' . mysqli_stmt_error($stmt));
+	}
+	$done = 'done';
+	$noshow = 'noshow';
+	$cancelled = 'cancelled';
+	if(!mysqli_stmt_prepare($stmt, "SELECT * FROM rides WHERE ridedate=? and (status=? or status=? or status=?)  ORDER BY car ASC")){
+		die('Failed Prepare: ' . mysqli_stmt_error($stmt));
+	}
+	if(!mysqli_stmt_bind_param($stmt, 'ssss', gmdate('Y-m-d'), $done, $noshow, $cancelled)){
+		die('Failed Bind: ' . mysqli_stmt_error($stmt));
+	}
+	if(!mysqli_stmt_execute($stmt)){
+		die('Exec Failed: ' . mysqli_stmt_error($stmt));
+	}
+	$row = array();
+	if(!mysqli_stmt_bind_result($stmt,
+				$row['num'], 
+				$row['name'],
+				$row['cell'],
+				$row['requested'], 
+				$row['riders'],
+				$row['precar'],
+				$row['car'],
+				$row['pickup'],
+				$row['fromloc'],
+				$row['dropoff'],
+				$row['notes'],
+				$row['clothes'],
+				$row['ridedate'],
+				$row['status'],
+				$row['timetaken'],
+				$row['timeassigned'],
+				$row['timedone'],
+				$row['loc'])){
+		die('Bind Failed: ' . mysqli_stmt_error($stmt));
+	}
 	$j=0;
-	while($row = mysql_fetch_array($qry)) {
-	
+	while(mysqli_stmt_fetch($stmt)) {
 		$rowclass = rowColor($j);
 		if ($_GET['num']==$row['num']) {$rowclass = $rowclass." notice";}
 	
 		echo '<tr class="'.$rowclass.'" id="row'.$row['num'].'">';
 		echo '<div class="assign" id="assign'.$row['num'].'"></div>';
-	
 		tblBtnEdit($row['num'],$pgId);
 		tblBtnUndo($row['num']);
 		tblRideInfo($row['status']);
@@ -58,6 +88,7 @@ if ( isset($_GET['oday']) ) {
 		$j++;
 		echo '</tr>'."\r";
 	}
+
 	?>
 </table>
 

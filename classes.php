@@ -2,27 +2,7 @@
 error_reporting(E_ERROR);
 ini_set('display_errors', '1');
 
-include("functions.php"); 
-
-
-
-// database connection
-$con = mysql_connect('localhost', 'gdphoneroom', 'sAuO=7[u9mAF?');
-if (!$con) {
-  die('Could not connect: ' . mysql_error());}
-$db = 'saferideprogram';
-mysql_select_db($db,$con);
-
-/****************************
-Time Making Functions
-****************************/
-
-
-
-/****************************
-Table Making Functions
-****************************/
-
+//include("functions.php"); 
 
 
 /****************************

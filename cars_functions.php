@@ -5,12 +5,13 @@
 function carBoxes(){
 global $datecheck;
 global $currtime;
+global $gdate;
 
-$carsMaxBase = 12;
+$carsMaxBase = 7;
 $cars = array();
 
 // Looks up the highest car number used on the night
-$cSql = "SELECT MAX(car) as max FROM rides WHERE ".$datecheck;
+$cSql = "SELECT MAX(car) as max FROM rides WHERE ".$gdate;
 		$cQry = mysql_query($cSql);
 		while ($row = mysql_fetch_array($cQry)) {
 		if ($row['max']==NULL)

@@ -22,17 +22,49 @@
 		<th>Time</th>
 	</tr>
 	<?php
-	$sql = "SELECT * FROM rides WHERE ridedate = ".$dateofride." AND status = 'riding' ORDER BY car ASC";
-	$qry = mysql_query($sql);
+	$con = connect();
+	if(!($stmt = mysqli_stmt_init($con))){
+		die('Failed Init: ' . mysqli_stmt_error($stmt));
+	}
+	$riding = 'riding';
+	if(!mysqli_stmt_prepare($stmt, "SELECT * FROM rides WHERE ridedate=? and status=? ORDER BY car ASC")){
+		die('Failed Prepare: ' . mysqli_stmt_error($stmt));
+	}
+	if(!mysqli_stmt_bind_param($stmt, 'ss', gmdate('Y-m-d'), $riding)){
+		die('Failed Bind: ' . mysqli_stmt_error($stmt));
+	}
+	if(!mysqli_stmt_execute($stmt)){
+		die('Exec Failed: ' . mysqli_stmt_error($stmt));
+	}
+	$row = array();
+	if(!mysqli_stmt_bind_result($stmt,
+				$row['num'], 
+				$row['name'],
+				$row['cell'],
+				$row['requested'], 
+				$row['riders'],
+				$row['precar'],
+				$row['car'],
+				$row['pickup'],
+				$row['fromloc'],
+				$row['dropoff'],
+				$row['notes'],
+				$row['clothes'],
+				$row['ridedate'],
+				$row['status'],
+				$row['timetaken'],
+				$row['timeassigned'],
+				$row['timedone'],
+				$row['loc'])){
+		die('Bind Failed: ' . mysqli_stmt_error($stmt));
+	}
 	$j=0;
-	while($row = mysql_fetch_array($qry)) {
-	
+	while(mysqli_stmt_fetch($stmt)) {
 		$rowclass = rowColor($j);
 		if ($_GET['num']==$row['num']) {$rowclass = $rowclass." notice";}
 	
 		echo '<tr class="'.$rowclass.'" id="row'.$row['num'].'">';
 		echo '<div class="assign" id="assign'.$row['num'].'"></div>';
-	
 		tblBtnDone($row['num']);
 		tblBtnEdit($row['num'],$pgId);
 		tblBtnCancel($row['num']);
@@ -49,6 +81,7 @@
 		$j++;
 		echo '</tr>'."\r";
 	}
+	mysqli_close($con);
 	?>
 </table>
 

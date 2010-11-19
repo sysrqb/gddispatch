@@ -3,10 +3,6 @@
 <?php $pgId = "stats"; ?>
 <?php include("layout_top.php"); 
 
-if ( isset($_GET['oday']) ) {
-	$dateofride = date("Ymd", mktime(date("H")-12, date("i"), date("s"), $_GET['omonth'], $_GET['oday'],$_GET['oyear']))."000000";
-}
-
 ?>	
 
 		<h1> TEST DATA</h1>
