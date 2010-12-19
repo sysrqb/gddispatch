@@ -61,5 +61,5 @@ for($bench = 0; $bench < 3; $bench++)
 //	print_r($prepare);
 include('functions.php');
 //rideSplit(9, 2, 2);
-carBoxes();
+checkCount("done");
 ?>
