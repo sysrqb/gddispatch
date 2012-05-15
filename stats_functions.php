@@ -1,96 +1,109 @@
 <?php
-//include("classes.php"); 
+//include("functions.php");
 
-function typeByHour() {
-global $dateofride;
+function ridesbyhour() {
+	global $gdate;
 
-$normalCountText = 0;
-$ngCountText = 0;
+	$con = connect();
+	$totdone = 0;
+	$totcancel = 0;
+	$totmissed = 0;
 
-$timeArray = array(23,0,1,2,3,4);
-for ($i=0; $i<6; $i++){
-$ngCount = '0.0';
-$allCount = '0.0';
-$normalCount = '0.0';
-$j=$i+1;
+	$timeArray = array(00,01,02,03,07,08);
+	for ($i=0; $i<6; $i++){
 
-$hTime = $timeArray[$i];
+		$hTime = $timeArray[$i];
 
-// Count done NG rides
-$cSql = "SELECT SUM(riders) as max FROM rides WHERE ridedate = ".$dateofride." AND status = 'done' AND pickup = 'ng' AND HOUR(timedone) = ".$hTime;
-		$cQry = mysql_query($cSql);
-		while ($row = mysql_fetch_array($cQry)) {
-		if ($row['max']==NULL)
-			$ngCount = 0.0;
-		else
-			$ngCount = $row['max'];}
-
-$cSql = "SELECT SUM(riders) as max FROM rides WHERE ridedate = ".$dateofride." AND status = 'done' AND HOUR(timedone) = ".$hTime;
-		$cQry = mysql_query($cSql);
-		while ($row = mysql_fetch_array($cQry)) {
-		if ($row['max']==NULL)
-			$allCount = 0.0;
-		else
-			$allCount = $row['max'];}	
-
-$normalCount = $allCount - $ngCount;
-$normalCountText = $normalCountText.','.$normalCount;
-$ngCountText = $ngCountText.','.$ngCount;
-
-}
-
-$typeByHourText = 'http://chart.apis.google.com/chart?cht=lc&chd=t:'.$normalCountText.'|'.$ngCountText.'&chxt=x,y&chxl=0:||11pm|12am|1am|2am|3am|4am|1:|1|50|100&chs=300x180&chco=cc33ffcc,66cccccc&chtt=Type%20by%20Hour&chts=333333,18&chdl=Calls|North Gate';
-
-echo $typeByHourText;
-}
-
-function ridesByHour() {
-global $dateofride;
-
-$doneCountText = 0;
-$canCountText = 0;
-$missedCountText = 0;
-
-$timeArray = array(23,0,1,2,3,4);
-for ($i=0; $i<6; $i++){
-
-$hTime = $timeArray[$i];
-
-// Count done rides
-$cSql = "SELECT SUM(riders) as max FROM rides WHERE ridedate = ".$dateofride." AND status = 'done' AND HOUR(timedone) = ".$hTime;
-		$cQry = mysql_query($cSql);
-		while ($row = mysql_fetch_array($cQry)) {
-		if ($row['max']==NULL)
-			$doneCount = 0.0;
-		else
-			$doneCount = $row['max'];}
-
-$cSql = "SELECT SUM(riders) as max FROM rides WHERE ridedate = ".$dateofride." AND status = 'cancelled' AND HOUR(timedone) = ".$hTime;
-		$cQry = mysql_query($cSql);
-		while ($row = mysql_fetch_array($cQry)) {
-		if ($row['max']==NULL)
-			$canCount = 0.0;
-		else
-			$canCount = $row['max'];}	
-
-$cSql = "SELECT SUM(riders) as max FROM rides WHERE ridedate = ".$dateofride." AND status = 'cpmissed' AND HOUR(timedone) = ".$hTime;
-		$cQry = mysql_query($cSql);
-		while ($row = mysql_fetch_array($cQry)) {
-		if ($row['max']==NULL)
-			$missedCount = 0.0;
-		else
-			$missedCount = $row['max'];}				
+	// Count done rides	
+		if(!($stmt=mysqli_stmt_init($con))){
+			die('Failed Init ' . mysqli_stmt_error($stmt));
+		}
+		if(!mysqli_stmt_prepare($stmt, "SELECT SUM(riders) as sum FROM rides WHERE ridedate = ? AND status = 'done' AND HOUR(timedone) = ?")){
+			die('Prep1 Failed: . ' . mysqli_stmt_error($stmt));
+		}
+		if(!mysqli_stmt_bind_param($stmt, 'si', $gdate, $hTime)){
+		die('Bind Failed: ' . mysqli_stmt_error($stmt));
+		}
+		/*$cSql = "SELECT SUM(riders) as max FROM rides WHERE ridedate = ".$gdate." AND status = 'done' AND HOUR(timedone) = ".$hTime;
+			$cQry = mysql_query($cSql);
+			while ($row = mysql_fetch_array($cQry)) {
+			if ($row['max']==NULL)
+				$hourdone = 0.0;
+			else
+				$hourdone = $row['max'];}*/
+		if(!mysqli_stmt_execute($stmt)){
+			die('Exec Failed: ' . mysqli_stmt_error($stmt));
+		}
+		if(!mysqli_stmt_bind_result($stmt, $donesum)){
+			die('Bind Res Failed: ' . mysqli_stmt_error($stmt));
+		}
+		while(mysqli_stmt_fetch($stmt)){
+			$hourdone = $donesum;
+		}
 
 
-$canCountText = $canCountText.','.$canCount;
-$missedCountText = $missedCountText.','.$missedCount;
-$doneCountText = $doneCountText.','.$doneCount;
+		if(!($stmt=mysqli_stmt_init($con))){
+			die('Failed Init ' . mysqli_stmt_error($stmt));
+		}
+		if(!mysqli_stmt_prepare($stmt, "SELECT SUM(riders) as max FROM rides WHERE ridedate = ? AND status = 'cancelled' AND timedone = ?")){
+			die('Prep1 Failed: . ' . mysqli_stmt_error($stmt));
+		}
+		if(!mysqli_stmt_bind_param($stmt, 'si', $gdate, $hTime)){
+			die('Bind Failed: ' . mysqli_stmt_error($stmt));
+		}
+		
+		/*$cSql = "SELECT SUM(riders) as max FROM rides WHERE ridedate = ".$dateofride." AND status = 'cancelled' AND HOUR(timedone) = ".$hTime;
+			$cQry = mysql_query($cSql);
+			while ($row = mysql_fetch_array($cQry)) {
+			if ($row['max']==NULL)
+				$hourcan = 0.0;
+			else
+				$hourcan = $row['max'];}*/
+		if(!mysqli_stmt_execute($stmt)){
+			die('Exec Failed: ' . mysqli_stmt_error($stmt));
+		}
+		if(!mysqli_stmt_bind_result($stmt, $cancsum)){
+			die('Bind Res Failed: ' . mysqli_stmt_error($stmt));
+		}
+		while(mysqli_stmt_fetch($stmt)){
+			$hourcan = $cancsum;
+		}
 
-}
+		if(!($stmt=mysqli_stmt_init($con))){
+			die('Failed Init ' . mysqli_stmt_error($stmt));
+		}
+		if(!mysqli_stmt_prepare($stmt, "SELECT SUM(riders) as max FROM rides WHERE ridedate = ? AND status = 'missed' AND timedone = ?")){
+			die('Prep1 Failed: . ' . mysqli_stmt_error($stmt));
+		}
+		if(!mysqli_stmt_bind_param($stmt, 'si', $gdate, $hTime)){
+		die('Bind Failed: ' . mysqli_stmt_error($stmt));
+		}
 
-$ridesByHourText = 'http://chart.apis.google.com/chart?cht=lc&chd=t:'.$doneCountText.'|'.$canCountText.'|'.$missedCountText.'&chxt=x,y&chxl=0:||11pm|12am|1am|2am|3am|4am|1:|1|50|100&chs=300x180&chco=00ff00cc,0000ffcc,ff0000cc&chtt=Rides%20by%20Hour&chts=333333,18&chdl=Done|Cancelled|Missed';
+		/*$cSql = "SELECT SUM(riders) as max FROM rides WHERE ridedate = ".$dateofride." AND status = 'cpmissed' AND HOUR(timedone) = ".$hTime;
+			$cQry = mysql_query($cSql);
+			while ($row = mysql_fetch_array($cQry)) {
+			if ($row['max']==NULL)
+				$hourmissed = 0.0;
+			else
+				$hourmissed = $row['max'];}*/
+		if(!mysqli_stmt_execute($stmt)){
+			die('Exec Failed: ' . mysqli_stmt_error($stmt));
+		}
+		if(!mysqli_stmt_bind_result($stmt, $misssum)){
+			die('Bind Res Failed: ' . mysqli_stmt_error($stmt));
+		}
+		while(mysqli_stmt_fetch($stmt)){
+			$hourmissed = $misssum;
+		}
+	}
 
-echo $ridesByHourText;
+	$totcancel = $totcancel.','.$hourcan;
+	$totmissed = $totmissed.','.$hourmissed;
+	$totdone = $totdone.','.$hourdone;
+
+	$ridesbyhour = 'http://chart.apis.google.com/chart?cht=lc&chd=t:'.$totdone.'|'.$totcancel.'|'.$totmissed.'&chxt=x,y&chxl=0:||11pm|12am|1am|2am|3am|4am|1:|1|50|100&chs=300x180&chco=00ff00cc,0000ffcc,ff0000cc&chtt=Rides%20by%20Hour&chts=333333,18&chdl=Done|Cancelled|Missed';
+
+	echo $ridesbyhour;
 }
 
 function ridesByCar() {

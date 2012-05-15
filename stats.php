@@ -1,14 +1,12 @@
-<?php require("classes.php"); ?>
-<?php include("stats_functions.php"); ?>
+<?php //require("classes.php"); ?>
 <?php $pgId = "stats"; ?>
 <?php include("layout_top.php"); 
+include("stats_functions.php");
 
 ?>	
 
 		<h1> TEST DATA</h1>
 		<div id="stats-content">
-
-			<img id="top-chart" src="<?php typeByHour(); ?>" alt="" />
 
 			<img id="top-chart" src="<?php ridesByHour(); ?>" alt="" />
 

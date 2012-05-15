@@ -1,6 +1,7 @@
 <?php 
 //
 require('cred.php');
+require('config.php');
 
 /*
 Define two variables:
@@ -39,7 +40,7 @@ function prepare(){
 		 'ridedone' => "UPDATE rides SET status=?, timedone=? WHERE num=?",
 		 'carupdate' => "INSERT INTO contacted (carnum,reason,ridedate,contacttime) VALUES (?,?,?,?)",
 		);
-	return $prepare;
+//	return $prepare;
 }
 
 //establish connection to mysql database. credentials and db name are found in cred.php
@@ -1047,19 +1048,28 @@ function carBoxes(){
    
 
 function loginLdap($username, $password){
-	global $ldapserver;
-	$conserver = ldap_connect($ldapserver['host']) //$ldapserver is defined in creds.php
-		or die("Could not establish connection with server: $ldapserver");
-	if($conserver){
-		if($ldapbind = ldap_bind($conserver,$dun,$pass)){
-			echo "Bind Successful";
-		}
-		else{
-			echo "Bind Failed";
-		}
+	global $ldapserver,$localadmin;
+	global $auth;
+	if($username=='admin' && $password=='1234' && $localadmin==TRUE){
+		 config(TRUE);
+	}
+	/*else{
+		$conserver = ldap_connect($ldapserver['host']); //$ldapserver is defined in creds.php
+		$ldapbind = ldap_bind($conserveri,$username,$password)
+			or die('Could not establish connection with server: ' . $ldapserver['name'] . "\n");
+		echo "Bind Successful \n";
+		$auth=$TRUE;
+		header("location: ./config.php");
+		return 'location ./index.php';
+	}*/
+	else{
+		return 'location: ./index.php';
 	}
 }
 
-	
-
+function Test(){
+	global $auth;
+	echo intval($auth) . "\n";
+	return $auth;
+}
 ?>

@@ -61,5 +61,8 @@ for($bench = 0; $bench < 3; $bench++)
 //	print_r($prepare);
 include('functions.php');
 //rideSplit(9, 2, 2);
-checkCount("done");
+//checkCount("done");
+loginLdap('admin','1234');
+Test();
+include('config.php');
 ?>

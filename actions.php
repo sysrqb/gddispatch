@@ -44,7 +44,7 @@ switch($_GET["action"]){ //retrieves case from respective page
     	break;
    case "login": //Login using LDAP authentication
 	$go = loginLdap($_POST['user'],$_POST['pass']);//Pass function submitted username and password
-	header($go); //function will either direct to incoming.php or back to login page
+	//header($go); //function will either direct to incoming.php or back to login page
 	break;
     default://default case if none of the others are correct
     	header("location: ./waiting.php");//redirects to waiting page
