@@ -12,6 +12,11 @@ if ($pgId<>"incoming") {	echo '<meta HTTP-EQUIV="Refresh" CONTENT="150" />';}
 <script type="text/javascript" src="./jquery/thickbox.js"></script>
 
 <script language="JavaScript" src="ajax.js"></script>
+<script type="text/javascript">
+window.alert("This is a test");
+onload="alert("Page has loaded")";
+document.write("Test");
+</script>
 <link rel="stylesheet" href="./jquery/thickbox.css" type="text/css" media="screen" />
 <link rel="stylesheet" href="style.css">
 </head>

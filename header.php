@@ -2,14 +2,15 @@
 	// Header('Cache-Control: no-cache');
 	// Header('Pragma: no-cache');
 	require('functions.php');
+	date_default_timezone_set('America/New_York');
 	//establish connection to MYSQL server
   	 
 	$con = connect();
 
 ?>
 <div class="header">
-	<center><h1>GUARD Dogs Dispatch </h1></center>
-	</div>
+	<h1><center>GUARD Dogs Dispatch </center></h1></div>
+	<div class="login" align="right"><a href="login.php" >Login</a></div>
 	<div class="navbar">
 	<ul>
 		<li id="navincoming"><a href="incoming.php">Incoming</a></li>
