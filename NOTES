@@ -1,0 +1,63 @@
+Incoming
+verifyname
+verifyphonenumber
+verifypickup
+verifydropoff
+verifyriders
+pickupwithin5miles
+dropoffwithin5miles
+uniquephonenumber
+
+Waiting
+checkcarnotassigned
+checkcarexists
+
+Assigned
+
+Riding
+
+Done
+
+Cancelled
+
+Conflicts
+
+
+
+General Idea/Flow
+
+When a call is received, the dispatcher inputs the provided information.
+Every field performs minimal validation, client-side. The phone number is
+checked to ensure it is not a duplicate. If it is the dispatcher can then
+inform the caller and has the option to override this restriction.
+
+When the dispatcher submits the request, all required fields are verified 
+to be filled. If one or more is empty, an alert pops-up displaying the 
+empty required fields. 
+
+Once all required fields are populated, the form is submitted and validation
+takes place server side. If any check fails, the errors are displayed above 
+the field.
+
+If all fields validate successfully, the dispatcher and the ride are then moved
+to the Waiting page where the ride can be assigned to a specific car. A 
+suggestion will also be made based on the current location and/or destination
+of the cars.
+
+When a ride is assigned to a car, client side verifies that the car exists and
+that the ride has not already been assigned to another car. If the ride has
+been assigned, confirm reassignment.
+
+On successful assignment, move ride to Assigned but leave dispatcher on Waiting 
+page.
+
+At this point, both the dispachers and Ride along, for the assigned car, have 
+control of the ride information. When a modification is made, we store which 
+fields were changed and by whom. This is done using a two byte entry in the
+database where the first byte (MSB) is used for dispatch and second byte (LSB)
+is used for modifcations made by GTB. Per byte, from MSb to LSb, the bits will 
+be marked for Name, Cell phone number, number of riders, Pickup Location, Drop 
+off location, Clothing, Notes, and Status. Using this information, if any
+conflicting modifications are made then they will be displayed to the 
+dispatchers on the Conflicts page. All non-conflicting modifications are 
+successfully changed.
