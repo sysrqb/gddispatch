@@ -1,26 +1,27 @@
-Incoming
-verifyname
-verifyphonenumber
-verifypickup
-verifydropoff
-verifyriders
-pickupwithin5miles
-dropoffwithin5miles
-uniquephonenumber
+Testing: 
+  Incoming
+    verifyname
+    verifyphonenumber
+    verifypickup
+    verifydropoff
+    verifyriders
+    pickupwithin5miles
+    dropoffwithin5miles
+    uniquephonenumber
 
-Waiting
-checkcarnotassigned
-checkcarexists
+  Waiting
+    checkcarnotassigned
+    checkcarexists
 
-Assigned
+  Assigned
 
-Riding
+  Riding
 
-Done
+  Done
 
-Cancelled
+  Cancelled
 
-Conflicts
+  Conflicts
 
 
 
@@ -56,8 +57,33 @@ control of the ride information. When a modification is made, we store which
 fields were changed and by whom. This is done using a two byte entry in the
 database where the first byte (MSB) is used for dispatch and second byte (LSB)
 is used for modifcations made by GTB. Per byte, from MSb to LSb, the bits will 
-be marked for Name, Cell phone number, number of riders, Pickup Location, Drop 
-off location, Clothing, Notes, and Status. Using this information, if any
-conflicting modifications are made then they will be displayed to the 
-dispatchers on the Conflicts page. All non-conflicting modifications are 
-successfully changed.
+be marked for changes to Name, Cell phone number, number of riders, Pickup 
+Location, Drop off location, Clothing, Notes, and Status. Using this 
+information, if any conflicting modifications are made then they will be 
+displayed to the dispatchers on the Conflicts page. All non-conflicting 
+modifications are successfully committed.
+
+Version 1.0 Goals
+  - Strictly updated UI
+  - Create ride with all validation checks, client and server
+  - Assigned ride to car, validation is not required
+  - Implement Admin interface with minimal control
+    - Login via CAS
+    - Add Car information into DB
+  - Merging will not be performed, last update is most recent commit
+  - No suggested car assignment, implemented in future version
+  - Pickup/Dropoff location will be static (dynamically generated in future)
+  - No statistical/computational results will be rendered, implemented in 
+      future version
+
+TODO
+  - Merging based on conflicts
+  - Add conflicts that Dispatch needs to handle to Conflicts page
+  - Suggest car assignment based on locations
+  - Pickup/Dropoff location are rendered dynamically based on values in DB
+  - Use dataset to find patterns, areas we can improve 
+  - Create Alert when ride along has an emergency
+  - Push notifications to ride along
+  - Additional control and reporting on Admin console/page
+  - Successful login to CAS verifies member completed the hours for which he/she signed up
+    - Ensure Membership website reflects this
