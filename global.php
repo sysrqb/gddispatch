@@ -1,0 +1,37 @@
+<?php
+
+$log = FALSE;
+$logfile = "/tmp/dispatch.log";
+$die = TRUE;
+
+/*
+Define two variables:
+gtime defines the current time GMT, in Year-Month-Day Hour:Minutes:Seconds format
+time defines the current time in the currect timezone, in Year-Month-Day Hour:Minutes:Seconds format
+*/
+$gtime = gmdate('Y-m-d H:i:s');
+$gdate = gmdate('Y-m-d');
+$time = time('Y-m-d H:i:s');
+
+/*
+Define the array containing the prepared statement variables
+create prepared statements
+*/
+$prepare = array('ride' => "SELECT * FROM patron, ridetimes WHERE LEFT(ridetimes.ridecreated, 10) = ? AND status = ? AND ridetimes.tid = patron.pid", 
+		 'totalcount' => "SELECT SUM(riders) as total FROM patron, ridetimes WHERE LEFT(ridetimes.ridecreated, 10) = ? AND status = ?",
+		 'setride' => "UPDATE patron SET car =? , status = 'riding' WHERE pid = ? AND UPDATE ridetimes SET rideassigned = ? WHERE pid = ?",
+		 'getride' => "SELECT * FROM patron, ridetimes WHERE pid = ?",
+		 'splitduplicate' => "INSERT INTO rides (name,cell,riders,car,pickup,fromloc,dropoff,notes,clothes,ridedate,status,timetaken,loc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		 'splitupdate' => "UPDATE rides SET car =? , riders =?, status = 'riding', timeassigned =? WHERE num=?",
+		 'rideupdate' => "UPDATE rides SET car=?, name=?, cell=?, riders=?, pickup=?, fromloc=?, dropoff=?, loc=?, clothes=?, notes=? WHERE num=?",
+		 //'rideadd' => "INSERT INTO rides (name,cell,riders,pickup,fromloc,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+		 'getlocationid' => "SELECT lid FROM locations WHERE value = ?",
+		 'rideaddpatron' => "INSERT INTO patron (name,cell,riders,pickup,dropoff,clothes,notes,status) VALUES (?,?,?,?,?,?,?,?)",
+		 'rideaddtime' => "INSERT INTO ridetimes (ridecreated, pid) VALUES (?, ?)",
+		 'setridetocancel' => "UPDATE patron SET status = ? , timedone = ?, WHERE pid = ? AND UPDATE ridetimes SET timecancelled = ?", 
+		 'rideundo' => "UPDATE patron SET status = ? where pid = ?",
+		 'ridedone' => "UPDATE patron SET status = ?, WHERE pid = ? AND UPDATE ridetimes SET timecomplete = ? WHERE pid = ?",
+		 'carupdate' => "INSERT INTO contacted (carnum,reason,ridedate,contacttime) VALUES (?,?,?,?)",
+		);
+
+
