@@ -3,6 +3,7 @@
 $log = FALSE;
 $logfile = "/tmp/dispatch.log";
 $die = TRUE;
+$quiet = FALSE;
 
 /*
 Define two variables:
@@ -18,14 +19,16 @@ Define the array containing the prepared statement variables
 create prepared statements
 */
 $prepare = array('ride' => "SELECT * FROM patron, ridetimes WHERE LEFT(ridetimes.ridecreated, 10) = ? AND status = ? AND ridetimes.tid = patron.pid", 
-		 'totalcount' => "SELECT SUM(riders) as total FROM patron, ridetimes WHERE LEFT(ridetimes.ridecreated, 10) = ? AND status = ?",
+		 'location' => 'SELECT * FROM saferide.locations where lid = ?',
+		 'totalcount' => "SELECT SUM(riders) as total FROM patron, ridetimes WHERE LEFT(ridetimes.ridecreated, 10) = ? AND status = ? AND ridetimes.tid = patron.pid",
 		 'setride' => "UPDATE patron SET car =? , status = 'riding' WHERE pid = ? AND UPDATE ridetimes SET rideassigned = ? WHERE pid = ?",
 		 'getride' => "SELECT * FROM patron, ridetimes WHERE pid = ?",
 		 'splitduplicate' => "INSERT INTO rides (name,cell,riders,car,pickup,fromloc,dropoff,notes,clothes,ridedate,status,timetaken,loc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
 		 'splitupdate' => "UPDATE rides SET car =? , riders =?, status = 'riding', timeassigned =? WHERE num=?",
 		 'rideupdate' => "UPDATE rides SET car=?, name=?, cell=?, riders=?, pickup=?, fromloc=?, dropoff=?, loc=?, clothes=?, notes=? WHERE num=?",
 		 //'rideadd' => "INSERT INTO rides (name,cell,riders,pickup,fromloc,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
-		 'getlocationid' => "SELECT lid FROM locations WHERE value = ?",
+		 'getlocationid' => "SELECT lid FROM locations WHERE value = ? OR name = ?",
+		 'addlocation' => 'INSERT INTO locations (name, value) VALUES (?, ?)',
 		 'rideaddpatron' => "INSERT INTO patron (name,cell,riders,pickup,dropoff,clothes,notes,status) VALUES (?,?,?,?,?,?,?,?)",
 		 'rideaddtime' => "INSERT INTO ridetimes (ridecreated, pid) VALUES (?, ?)",
 		 'setridetocancel' => "UPDATE patron SET status = ? , timedone = ?, WHERE pid = ? AND UPDATE ridetimes SET timecancelled = ?", 

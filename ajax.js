@@ -40,25 +40,35 @@ xmlHttp.onreadystatechange=function() {
 
 function phonecheck(cellp)
 {
-var xmlhttp
-try {
-    // Firefox, Opera 8.0+, Safari
+  var xmlhttp
+  try {
+    // Firefox, Opera 8.0+, Safari, Chrome
     xmlHttp=new XMLHttpRequest(); }
   catch (e){
-    // Internet Explorer
+    // Internet Explorer, but I hope this isn't the case,
     try {
       xmlHttp=new ActiveXObject("Msxml2.XMLHTTP"); }
     catch (e) {
       try {
         xmlHttp=new ActiveXObject("Microsoft.XMLHTTP"); }
       catch (e) {
-        alert("Your browser does not support AJAX!");
-        return false; } } }
-xmlHttp.onreadystatechange=function() {
-      if(xmlHttp.readyState==4) {
-        document.getElementById("phonecheck").innerHTML=xmlHttp.responseText;} }
-    xmlHttp.open("GET","phonecheck.php?"+c1+c2+c3,true);
-    xmlHttp.send(null);
+	//Die gracefully
+        return false;
+      }
+    }
+  }
+  xmlHttp.onreadystatechange=function()
+  {
+    if(xmlHttp.readyState==4)
+    {
+      //document.getElementById("phonecheck").innerHTML=xmlHttp.responseText;
+      var response = xmlHttp.responseText;
+      if (response != "")
+        alert(response);
+    }
+  }
+  xmlHttp.open("GET","phonecheck.php?"+cellp,true);
+  xmlHttp.send(null);
 }
 
 

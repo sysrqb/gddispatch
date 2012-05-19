@@ -24,28 +24,28 @@
 			<p><label class="left">Where can we pick you up?</label>
                               <select name="fromloc" class="combo" onchange="checkPick('pickup')">
                 		<option value="Null">Select a Location:</option>
-            		        <option value="Al"> Alumni </option>
-                     		<option value="B"> Buckley </option>
-                		<option value="BS"> Busby Suites </option>
-				<option value="Car"> Carriage </option>
-				<option value="Ce"> Celeron </option>
-                		<option value="CO"> Charter Oak </option>
-                     		<option value="E"> East </option>
-                     		<option value="GS"> Garrigus Suites </option>
-                     		<option value="Gr"> Graduate Housing </option>
-                     		<option value="HTA"> Hilltop Apartments </option>
-                     		<option value="HT"> Hilltop Dorms </option>
-				<option value="HL"> Hunting Lodge </option>
- 				<option value="HV"> Husky Village </option>
-                     		<option value="MA"> Mansfield </option>                    		
-                     		<option value="MM"> McMahon </option>
-				<option value="N"> North </option>
-                     		<option value="NW"> NorthWest </option>
-                     		<option value="Sh"> Shippee </option>
-                     		<option value="So"> South </option>
-                     		<option value="T"> Towers </option>
-                     		<option value="W"> West </option>
-                     		<option value="Other"> Other </option></select></p>
+            		        <option value="Al">Alumni</option>
+                     		<option value="B">Buckley</option>
+                		<option value="BS">Busby Suites</option>
+				<option value="Car">Carriage</option>
+				<option value="Ce">Celeron</option>
+                		<option value="CO">Charter Oak</option>
+                     		<option value="E">East</option>
+                     		<option value="GS">Garrigus Suites</option>
+                     		<option value="Gr">Graduate Housing</option>
+                     		<option value="HTA">Hilltop Apartments</option>
+                     		<option value="HT">Hilltop Dorms</option>
+				<option value="HL">Hunting Lodge</option>
+ 				<option value="HV">Husky Village</option>
+                     		<option value="MA">Mansfield Apartments</option>                    		
+                     		<option value="MM">McMahon</option>
+				<option value="N">North</option>
+                     		<option value="NW">NorthWest</option>
+                     		<option value="Sh">Shippee</option>
+                     		<option value="So">South</option>
+                     		<option value="T">Towers</option>
+                     		<option value="W">West</option>
+                     		<option value="Other">Other</option></select></p>
 
 			  <label class="left"></label>
     			   <p><input class="field" name="pickup" onfocus="otherPlace('pickup')" onblur="checkFilled('pickup')" placeholder="Only use if Other" disabled="disabled"/></p>
@@ -96,8 +96,4 @@
 			<p>But most importantly, <b>HAVE FUN!</b></p>
 			</fieldset>
 		</div>
-	</div>
-	<?php include("footer.php"); ?>
-</div>
-</body>
-</html>
+	<?php include("layout_bottom.php"); ?>

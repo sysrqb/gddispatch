@@ -52,11 +52,14 @@ function loganddie($error)
   {
     if($die == 1)
     {
-      die($error);
+      die($error . "\n");
     }
     else
     {
-      echo $error;
+      if($quiet)
+      {
+        echo $error . "\n";
+      }
     }
   }
 }
