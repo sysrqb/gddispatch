@@ -22,7 +22,7 @@
         <th>Notes</th>
         <th>Time</th>
       </tr>
-      <?php echo getTableValues("", "assigned");?>
+      <?php echo getTableValuesAssigned("");?>
     </table>
 
       <?php include("layout_bottom.php"); ?>
