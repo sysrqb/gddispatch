@@ -7,6 +7,8 @@ function connect(){
   if($con->connect_error)
   {
     $error = 'Connection Error (' . $con->connect_errno . ') ' . $con->connect_error;
+    $error .= "\n" . 'host: ' . $host;
+    $error .= "\n" . 'username: ' . $username; 
     loganddie($error);
   }
   $con->select_db($db);

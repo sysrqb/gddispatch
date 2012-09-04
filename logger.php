@@ -52,6 +52,7 @@ function loganddie($error)
   {
     if($die == 1)
     {
+      debug_print_backtrace();
       die($error . "\n");
     }
     else

@@ -1,5 +1,5 @@
 <?php 
-require('cred.php');
+require('credfile.php');
 require('config.php');
 require('global.php');
 require('connection.php');
@@ -1016,5 +1016,98 @@ function getTableValuesRiding($ridedate)
   $stmt->close();
   $con->close();
   return $table;
+}
+
+function isAuthenticated(){
+  if(isset($_SESSION))
+  {
+    $result  = false;
+    /* Remember: A user is logged in iff the entry for the user has loggedin=1
+     * and TIMESTAMPDIFF(HOUR, NOW(), logintime) < 12
+     */
+
+    $query = 'SELECT COUNT(*) FROM activeusers WHERE username=? AND ticket=?' . 
+             ' AND loggedin=1 AND TIMESTAMPDIFF(HOUR, NOW(), logintime) < 12';
+    $con = connect();
+    if(!($stmt = $con->prepare($query)))
+    {
+      $error = 'login-auth: Prep Failed: ' . $con->error;
+      loganddie($error);
+      return 0;
+    }
+    if(!$stmt->bind_param('ss', $_SESSION['username'], $_SESSION['ticket']))
+    {
+       $error = 'login-auth: Bind Param Failed: ' . $stmt->error;
+      loganddie($error);
+      return 0;
+    }
+    if(!$stmt->execute())
+    {
+      $error = 'login-auth: Exec Failed: ' . $stmt->error;
+      loganddie($error);
+      return 0;
+    }
+    if(!$stmt->bind_result($retcount))
+    {
+      $error = 'login-auth: Bind Result Failed: ' . $stmt->error;
+      loganddie($error);
+      return 0;
+    }
+    if(!$stmt->num_rows > 0)
+    {
+      /* Store logindate */
+      while($stmt->fetch());
+      if($retcount == 1)
+        $result = true;
+    }
+    else
+      $result = false;
+    
+    $stmt->close();
+    $con->close();
+  }
+  else
+    $result = false;
+
+  return $result;
+}
+
+function makeUserLoggedIn($sessioninfo){
+  if(isset($sessioninfo['username']) &&
+     isset($sessioninfo['AUTH_RET']) &&
+     isset($sessioninfo['ticket']))
+  {
+    $con = connect();
+    $query  = 'INSERT into activeusers' .
+              '(username, ticket, logintime, loggedin) VALUES' .
+	      '(?, ?, NOW(), 1)';
+
+    if(!($stmt = $con->prepare($query)))
+    {
+      $error = 'makeUserLoggedIn: Preparing the statement failed ' .  
+          $con->errno . ' ' . $con->error;
+      loganddie($error);
+      return false;
+    }
+    if(!$stmt->bind_param('ss',
+                          $sessioninfo['username'],
+			  $sessioninfo['ticket']))
+    {
+      $error = 'makeUserLoggedIn: Binding the parameters failed ' .  
+          $stmt->errno . " " . $stmt->error;
+      loganddie($error);
+      return false;
+    }
+    if(!$stmt->execute())
+    {
+      $error = 'makeUserLoggedIn: Can not find location: ' . $stmt->errno() . ' ' . $stmt->error;
+      loganddie($error);
+      return false;
+    }
+    $stmt->close();
+    $con->close();
+    return true;
+  } else
+    return false;
 }
 ?>

@@ -2,6 +2,7 @@
 	// Header('Cache-Control: no-cache');
 	// Header('Pragma: no-cache');
 	require('functions.php');
+	require('login-auth.php');
 ?>
 <div class="header">
 	<h1 style="text-align: center; ">GUARD Dogs Dispatch</h1></div>
