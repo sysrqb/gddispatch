@@ -6,9 +6,9 @@ body {
   text-align: center;
   background-color: gray;
 }
+</style>
 </head>
 <body>
-</style>
 <h2>Welcome to the GUARD Dogs Dispatch Site</h2>
 <br />
 <a href=<?php echo $CASserver . urlencode($LocalAuthValidator)?>><button type="button">Click here to login</button></a>

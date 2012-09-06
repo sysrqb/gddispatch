@@ -3,11 +3,16 @@
 	// Header('Pragma: no-cache');
 	require('functions.php');
 	require('login-auth.php');
+	if(isset($_SESSION['data']))
+	  unset($_SESSION['data']);
+
+        if(isset($_SESSION['authenticated_admin']))
+	  unset($_SESSION['authenticated_admin']);
 ?>
 <div class="header">
 	<h1 style="text-align: center; ">GUARD Dogs Dispatch</h1></div>
 	<noscript>You are not currently using Javascript. As a result, you will experience reduced functionality</noscript>
-	<div class="login" style="text-align: right;"><a href="login.php" >Login</a></div>
+	<div class="login" style="text-align: right;"><a href="login.php" >Admin Login</a></div>
 	<div class="navbar">
 	<ul>
 		<li id="navincoming"><a href="incoming.php">Incoming</a></li>

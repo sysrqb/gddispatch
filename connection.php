@@ -16,10 +16,23 @@ function connect(){
 }
    
 
-function loginLdap($username, $password){
+function adminLogin($username, $password){
 	global $ldapserver,$localadmin;
 	global $auth;
-	if($username=='admin' && $password=='1234' && $localadmin==TRUE){
+ 
+	echo 'adminLogin' . "\n";
+        $filename = 'useraccess';
+	if(file_exists($filename)){
+	  if(filesize($filename) > 0){
+            $fd = fopen($filename, 'r');
+	    $usernames = fread($fd, filesize($filenames));
+	    if(strstr($usernames, $username) != false && !strmp($username, $_SESSION['username']))
+	         echo 'gibberish';
+		 config(TRUE);
+		 return;
+          }
+	}
+	elseif($username=='admin' && $password=='1234' && $localadmin==TRUE){
 		 config(TRUE);
 	}
 	/*else{
@@ -32,7 +45,7 @@ function loginLdap($username, $password){
 		return 'location ./index.php';
 	}*/
 	else{
-		return 'location: ./index.php';
+		return 'location: ./incoming.php';
 	}
 }
 

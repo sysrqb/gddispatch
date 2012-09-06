@@ -1,10 +1,10 @@
 <?php 
-require('credfile.php');
-require('config.php');
-require('global.php');
-require('connection.php');
-require('uifunctions.php');
-require('logger.php');
+require_once('credfile.php');
+require_once('config.php');
+require_once('global.php');
+require_once('connection.php');
+require_once('uifunctions.php');
+require_once('logger.php');
 
 /*------------------------
 Begin function definitions
