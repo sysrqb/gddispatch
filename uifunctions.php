@@ -257,7 +257,7 @@ function tblTimeWait($called, $assigned, $done, $status)
 }
 
 
-/* Returns the total wait time.
+/* Returns the total ride time.
  * Determined response time is considered short, medium, or long.
  * Returns difference.
  */

@@ -28,13 +28,14 @@
 //	if ($_GET['car']<>"") {$filterCar = ' AND car='.$_GET['car'].' ';}
 	
 //	$sql = "SELECT * FROM rides WHERE ridedate = ".$dateofride." AND (status = 'done' OR status = 'cpmissed' OR status = 'cancelled') ".$filterCar." ORDER BY status,car,timedone ASC";
-	$con = connect();
+	/*$con = connect();
 	if(!($stmt = mysqli_stmt_init($con))){
 		die('Failed Init: ' . mysqli_stmt_error($stmt));
 	}
 	$done = 'done';
 	$noshow = 'noshow';
 	$cancelled = 'cancelled';
+
 	if(!mysqli_stmt_prepare($stmt, "SELECT * FROM rides WHERE ridedate=? and (status=? or status=? or status=?)  ORDER BY car ASC")){
 		die('Failed Prepare: ' . mysqli_stmt_error($stmt));
 	}
@@ -87,9 +88,10 @@
 		tblHome($row['timedone'],$row['status']);
 		$j++;
 		echo '</tr>'."\r";
-	}
+	}*/
 
 	?>
+	<?php echo getTableValuesRiding('');?>
 </table>
 
 <?php include("layout_bottom.php"); ?>

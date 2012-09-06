@@ -1018,6 +1018,86 @@ function getTableValuesRiding($ridedate)
   return $table;
 }
 
+function getTableValuesAssigned($ridedate)
+{
+  $ret = getTableValues($ridedate, 'riding');
+  $stmt = $ret[0];
+  $con = $ret[1];
+  $row = $ret[2];
+  while(mysqli_stmt_fetch($stmt))
+  {
+    $rowclass = rowColor($j);
+    if ($_GET['pid']==$row['pid'])
+    {
+      $rowclass = $rowclass . " notice";
+    }
+
+    $table .= '<tr class="' . $rowclass . '" id="row' . $row['pid'] . '">';
+    $table .= '<div class="' . $status . '" id="' . $status . $row['pid'] . 
+      '"></div>';
+
+    $table .= tblBtnDone($row['pid']) . "\n";
+    $table .= tblBtnEdit($row['pid'], $pgId) . "\n";
+    $table .= tblBtnCancel($row['pid']) . "\n";
+    $table .= tblRideInfo($row['car']);
+    $table .= tblRideInfo($row['name']) . "\n";
+    $table .= tblRideInfo($row['riders']) . "\n";
+    $table .= tblRideInfo($row['pickup']) . "\n";
+    $table .= tblRideInfo($row['dropoff']) . "\n";
+    $table .= tblCell($row['cell'], $row['status']) . "\n";
+    $table .= tblRideInfo($row['clothes']) . "\n";
+    $table .= tblRideInfo($row['notes']) . "\n";
+    $table .= tblCalledIn($row['ridecreated']) . "\n";
+	
+    $table .= '</tr>'."\n";
+    $j++;
+  }
+  $stmt->close();
+  $con->close();
+  return $table;
+}
+
+function getTableValuesDone($ridedate)
+{
+  $ret = getTableValues($ridedate, 'done');
+  $stmt = $ret[0];
+  $con = $ret[1];
+  $row = $ret[2];
+  while(mysqli_stmt_fetch($stmt))
+  {
+    $rowclass = rowColor($j);
+    if ($_GET['pid']==$row['pid'])
+    {
+      $rowclass = $rowclass . " notice";
+    }
+
+    $table .= '<tr class="' . $rowclass . '" id="row' . $row['pid'] . '">';
+    $table .= '<div class="' . $status . '" id="' . $status . $row['pid'] . 
+      '"></div>';
+
+    $table .= tblBtnEdit($row['pid'], $pgId) . "\n";
+    $table .= tblBtnUndo($row['pid']) . "\n";
+    $table .= tblRideInfo($row['status']) . "\n";
+    $table .= tblDoneCar($row['car']) . "\n";
+    $table .= tblRideInfo($row['name']) . "\n";
+    $table .= tblRideInfo($row['riders']) . "\n";
+    $table .= tblRideInfo($row['pickup']) . "\n";
+    $table .= tblRideInfo($row['dropoff']) . "\n";
+    $table .= tblCell($row['cell'], $row['status']) . "\n";
+    $table .= tblTimeWait($row['ridecreated'], $row['rideassigned'],
+                          $row['timecomplete'], $row['status']) . "\n";
+    $table .= tblTimeRode($row['rideassigned'], $row['timecomplete'],
+                          $row['status']) . "\n";
+    $table .= tblHome($row['timecomplete'], $row['status']) . "\n";
+	
+    $table .= '</tr>'."\n";
+    $j++;
+  }
+  $stmt->close();
+  $con->close();
+  return $table;
+}
+
 function isAuthenticated(){
   if(isset($_SESSION))
   {
