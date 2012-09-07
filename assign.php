@@ -1,7 +1,7 @@
 <form class="fassign" method="post" action="actions.php?action=assign">
 <input type="hidden" name="num" value="<?php echo ($num = $_GET["num"]); ?>" />
 <p><label class="left" style="margin:3px 0 0 0;">Car: </label>
-<input class="number" name="car" value="<?php include("classes.php"); include('functions.php'); echo assignedPreride($num); ?>" autocomplete=on /></p>
+<input class="number" name="car" autocomplete=on /></p>
 <input value="Assign" class="assign" type="submit" style="margin:3px;"/>
 <input value="Close" class="cancel" type="button" style="margin:3px;" onClick="location.reload(true);" />
 </form>

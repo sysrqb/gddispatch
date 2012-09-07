@@ -955,7 +955,7 @@ function getTableValuesWaiting($ridedate)
     }
 
     $table .= '<tr class="' . $rowclass . '" id="row' . $row['pid'] . '">';
-    $table .= '<div class="' . $status . '" id="' . $status . $row['pid'] . 
+    $table .= '<div class="assign" id="assign' . $row['pid'] . 
       '"></div>';
 
     $table .= tblBtnAssign($row['pid']) . "\n";
