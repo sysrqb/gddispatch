@@ -16,7 +16,7 @@ switch($_GET["action"]){ //retrieves case from respective page
     	break;
     case "assign": //if assign was clicked on waiting page
     	rideAssign($_POST["num"],$_POST["car"]); //call rideAssign in function.php
-    	header("location: ./riding.php?num=".$_POST["num"]); //redirect to riding page
+    	header("location: ./assigned.php?num=".$_POST["num"]); //redirect to riding page
     	break;
     case "preassign": //if reassign was clicked on waiting page
     	prerideAssign($_POST["num"],$_POST["carnum"]); //call prerideAssign function in function.php
