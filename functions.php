@@ -132,7 +132,7 @@ function rideAssign($num,$car)
 {
   global $prepare, $gtime;
   $con = connect();
-  if(!($stmt = $con->prepare($stmt, $prepare['setride'])))
+  if(!($stmt = $con->prepare($prepare['setassign'])))
   {
     $error = 'rideAssign: Prep failed: ' . $con->error;
     loganddie($error);
