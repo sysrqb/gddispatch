@@ -139,7 +139,7 @@ function rideAssign($num,$car)
     return;
   }
 
-  if(!($stmt = $con->bind_param('isi', $car, $gtime, $num)))
+  if(!$stmt->bind_param('isii', $car, $gtime, $num, $num))
   {
     $error = 'rideAssign: Bind failed ' . $stmt->error;
     loganddie($error);
@@ -321,7 +321,7 @@ function getLocation($lid)
   $stmt->store_result();
   if(!$stmt->num_rows)
     return;
-  $stmt->bind_result($row['lid'], $row['name'], $loc['value'], 
+  $stmt->bind_result($row['lid'], $row['name'], $row['value'], $row['code'],
       $row['lat'], $row['long']);
   while($stmt->fetch());
   $stmt->close();
@@ -349,7 +349,7 @@ function getLocationID($value)
     loganddie($error);
     return;
   }
-  if(!mysqli_stmt_bind_param($stmt, 'ss', $value, $value))
+  if(!mysqli_stmt_bind_param($stmt, 'sss', $value, $value, $value))
   {
     $error = 'getLocationID: Binding the parameters failed ' .  $stmt->errno . " " . $stmt->error;
     loganddie($error);
@@ -412,14 +412,24 @@ function rideAdd()
   $cellnumber = $_POST["cell1"] . $_POST["cell2"] . $_POST["cell3"]; 
   $cellnumber = $con->real_escape_string($cellnumber);
   $riders = $con->real_escape_string($_POST["riders"]);
+  if(isset($_POST["fromloc"]))
+    $fromloc = $con->real_escape_string($_POST["fromloc"]);
   $pickup = $con->real_escape_string($_POST["pickup"]);
+  if(isset($_POST["toloc"]))
+    $toloc = $con->real_escape_string($_POST["toloc"]);
   $dropoff = $con->real_escape_string($_POST["dropoff"]);
   $clothes = $con->real_escape_string($_POST["clothes"]);
   $notes = $con->real_escape_string($_POST["notes"]);
   $waiting = 'waiting';
 
-  $pickupid = getLocationID($pickup);
-  $dropoffid = getLocationID($dropoff);
+  if(isset($fromloc) && !strcmp($fromloc, 'Other'))
+    $pickupid = getLocationID($pickup);
+  else
+    $pickupid = getLocationID($fromloc);
+  if(isset($toloc) && !strcmp($toloc, 'Other'))
+    $dropoffid = getLocationID($dropoff);
+  else
+    $dropoffid = getLocationID($toloc);
 
 
   if(!($stmt = $con->prepare($prepare['rideaddpatron'])))
@@ -960,12 +970,12 @@ function getTableValuesWaiting($ridedate)
 
     $table .= tblBtnAssign($row['pid']) . "\n";
     $table .= tblBtnSplit($row['pid']) . "\n";
-    $table .= tblBtnEdit($row['pid'], $pgId) . "\n";
+    $table .= tblBtnEdit($row['pid'], 'waiting') . "\n";
     $table .= tblBtnCancel($row['pid']) . "\n";
     $table .= tblRideInfo($row['name']) . "\n";
     $table .= tblRideInfo($row['riders']) . "\n";
-    $table .= tblRideInfo($row['pickup']) . "\n";
-    $table .= tblRideInfo($row['dropoff']) . "\n";
+    $table .= tblLocationInfo($row['pickup']) . "\n";
+    $table .= tblLocationInfo($row['dropoff']) . "\n";
     $table .= tblCell($row['cell'], $row['status']) . "\n";
     $table .= tblRideInfo($row['clothes']) . "\n";
     $table .= tblRideInfo($row['notes']) . "\n";
@@ -998,13 +1008,13 @@ function getTableValuesRiding($ridedate)
       '"></div>';
 
     $table .= tblBtnDone($row['pid']) . "\n";
-    $table .= tblBtnEdit($row['pid'], $pgId) . "\n";
+    $table .= tblBtnEdit($row['pid'], 'riding') . "\n";
     $table .= tblBtnCancel($row['pid']) . "\n";
     $table .= tblRideInfo($row['car']);
     $table .= tblRideInfo($row['name']) . "\n";
     $table .= tblRideInfo($row['riders']) . "\n";
-    $table .= tblRideInfo($row['pickup']) . "\n";
-    $table .= tblRideInfo($row['dropoff']) . "\n";
+    $table .= tblLocationInfo($row['pickup']) . "\n";
+    $table .= tblLocationInfo($row['dropoff']) . "\n";
     $table .= tblCell($row['cell'], $row['status']) . "\n";
     $table .= tblRideInfo($row['clothes']) . "\n";
     $table .= tblRideInfo($row['notes']) . "\n";
@@ -1020,7 +1030,7 @@ function getTableValuesRiding($ridedate)
 
 function getTableValuesAssigned($ridedate)
 {
-  $ret = getTableValues($ridedate, 'riding');
+  $ret = getTableValues($ridedate, 'assigned');
   $stmt = $ret[0];
   $con = $ret[1];
   $row = $ret[2];
@@ -1037,13 +1047,13 @@ function getTableValuesAssigned($ridedate)
       '"></div>';
 
     $table .= tblBtnDone($row['pid']) . "\n";
-    $table .= tblBtnEdit($row['pid'], $pgId) . "\n";
+    $table .= tblBtnEdit($row['pid'], 'assigned') . "\n";
     $table .= tblBtnCancel($row['pid']) . "\n";
     $table .= tblRideInfo($row['car']);
     $table .= tblRideInfo($row['name']) . "\n";
     $table .= tblRideInfo($row['riders']) . "\n";
-    $table .= tblRideInfo($row['pickup']) . "\n";
-    $table .= tblRideInfo($row['dropoff']) . "\n";
+    $table .= tblLocationInfo($row['pickup']) . "\n";
+    $table .= tblLocationInfo($row['dropoff']) . "\n";
     $table .= tblCell($row['cell'], $row['status']) . "\n";
     $table .= tblRideInfo($row['clothes']) . "\n";
     $table .= tblRideInfo($row['notes']) . "\n";
@@ -1075,13 +1085,13 @@ function getTableValuesDone($ridedate)
     $table .= '<div class="' . $status . '" id="' . $status . $row['pid'] . 
       '"></div>';
 
-    $table .= tblBtnEdit($row['pid'], $pgId) . "\n";
+    $table .= tblBtnEdit($row['pid'], 'done') . "\n";
     $table .= tblBtnUndo($row['pid']) . "\n";
     $table .= tblRideInfo($row['status']) . "\n";
     $table .= tblDoneCar($row['car']) . "\n";
     $table .= tblRideInfo($row['name']) . "\n";
-    $table .= tblRideInfo($row['riders']) . "\n";
-    $table .= tblRideInfo($row['pickup']) . "\n";
+    $table .= tblLocationInfo($row['riders']) . "\n";
+    $table .= tblLocationInfo($row['pickup']) . "\n";
     $table .= tblRideInfo($row['dropoff']) . "\n";
     $table .= tblCell($row['cell'], $row['status']) . "\n";
     $table .= tblTimeWait($row['ridecreated'], $row['rideassigned'],

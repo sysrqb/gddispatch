@@ -75,6 +75,16 @@ function tblRideInfo($info)
   return $row;
 }
 
+//Prints the ride info
+function tblLocationInfo($info)
+{
+  $loc = getLocation($info);
+  $row = '<td>';
+  $row .= $loc['name'];
+  $row .= '</td>' . "\r";
+  return $row;
+}
+
 /*  car an finished?? */
 function tblDoneCar($car)
 {
