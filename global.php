@@ -24,7 +24,7 @@ $prepare = array('ride' => "SELECT * FROM patron, ridetimes WHERE LEFT(ridetimes
 		 'setassign' => "UPDATE patron, ridetimes SET patron.car=?, patron.status='assigned', ridetimes.rideassigned = ? WHERE ridetimes.pid = ? AND patron.pid = ?",
 		 'setride' => "UPDATE patron SET car =? , status = 'riding' WHERE pid = ? AND UPDATE ridetimes SET timepickedup = ? WHERE pid = ?",
 		 'getride' => "SELECT * FROM patron, ridetimes WHERE patron.pid = ? AND ridetimes.pid = patron.pid",
-		 'splitduplicate' => "INSERT INTO rides (name,cell,riders,car,pickup,fromloc,dropoff,notes,clothes,ridedate,status,timetaken,loc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		 'splitduplicate' => "INSERT INTO patron (name,cell,riders,car,pickup,dropoff,notes,clothes,ridedate,status,timetaken,loc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
 		 'splitupdate' => "UPDATE rides SET car =? , riders =?, status = 'riding', timeassigned =? WHERE num=?",
 		 'rideupdate' => "UPDATE rides SET car=?, name=?, cell=?, riders=?, pickup=?, fromloc=?, dropoff=?, loc=?, clothes=?, notes=? WHERE num=?",
 		 //'rideadd' => "INSERT INTO rides (name,cell,riders,pickup,fromloc,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
