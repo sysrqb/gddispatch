@@ -3,6 +3,20 @@
 function connect(){
   global $host, $username, $password, $db, $prepare, $log, $logfile;
 
+  $con = new mysqli($host,$username,$password, $db);
+  if($con->connect_error)
+  {
+    $error = 'Connection Error (' . $con->connect_errno . ') ' . $con->connect_error;
+    $error .= "\n" . 'host: ' . $host;
+    $error .= "\n" . 'username: ' . $username; 
+    loganddie($error);
+  }
+  return $con;
+}
+   
+function initconnect(){
+  global $host, $username, $password, $db, $prepare, $log, $logfile;
+
   $con = new mysqli($host,$username,$password);
   if($con->connect_error)
   {
@@ -11,10 +25,8 @@ function connect(){
     $error .= "\n" . 'username: ' . $username; 
     loganddie($error);
   }
-  $con->select_db($db);
   return $con;
 }
-   
 
 function adminLogin($username, $password){
 	global $ldapserver,$localadmin;
