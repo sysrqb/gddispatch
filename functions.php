@@ -161,79 +161,92 @@ function rideAssign($num,$car)
 function rideSplit($num,$car,$riders) {
 	global $gtime,$prepare;
 	$con = connect();
-	if(!($stmt=mysqli_stmt_init($con))){
-		die('Init failed: ' . mysqli_stmt_error($stmt));
+
+	if(!($stmt = $con->prepare($prepare['getride']))){
+		die('Prep failed: ' . $stmt->error);
 	}
 
-	if(!mysqli_stmt_prepare($stmt, $prepare['getride'])){
-		die('Prep failed: ' .mysqli_stmt_error($stmt));
+	if(!$stmt->bind_param('i', $num)){
+		die('Bind failed ' . $stmti->error);
 	}
 
-	if(!mysqli_stmt_bind_param($stmt,'i', $num)){
-		die('Bind failed ' . mysqli_stmt_error($stmt));
-	}
-
-	if(!mysqli_stmt_execute($stmt)){
-		die('UPDATE failed: ' . mysqli_stmt_error($stmt));
+	if(!$stmt->execute()){
+		die('UPDATE failed: ' . $stmt->error);
 	}
 	//this opens the original ride
-	if(!mysqli_stmt_bind_result($stmt, 
-				$row['num'], 
+	if(!$stmt->bind_result( $row['pid'], 
 				$row['name'], 
 				$row['cell'], 
-				$row['requested'], 
 				$row['riders'], 
-				$row['precar'], 
 				$row['car'], 
 				$row['pickup'], 
-				$row['fromloc'], 
 				$row['dropoff'], 
-				$row['notes'], 
 				$row['clothes'], 
+				$row['notes'], 
 				$row['ridedate'], 
 				$row['status'], 
-				$row['timetaken'], 
-				$row['timeassigned'], 
-				$row['timedone'],
-				$row['loc'])){
-		die('Res Bind Failed: ' . mysqli_stmt_error($stmt));
+				$row['tid'], 
+				$row['ridecreated'], 
+				$row['rideassigned'], 
+				$row['timepickedup'],
+				$row['timecomplete'],
+				$row['timecancelled'],
+				$row['tpid'])){
+		die('Res Bind Failed: ' . $stmt->error);
 	}
-	while(mysqli_stmt_fetch($stmt)){
+	while($stmt->fetch()){
     	
     		$ridersLeft = ($row['riders'] - $riders);
 	}		
-	mysqli_close($con);
+	$con->close();
 	
 	print_r($row);
 
 	// this creates the duplicate ride
-	$con1 = connect();
-	if(!($stmt1 = mysqli_stmt_init($con1))){
-		die('Init Failed: ' . mysqli_stmt_error($stmt));
+	$con = connect();
+	if(!($stmt = $con->prepare($prepare['splitduplicate']))){
+		die('Prep Failed1: ' . $stmt->error);
 	}
-	if(!mysqli_stmt_prepare($stmt1, $prepare['splitduplicate'])){
-		die('Prep Failed1: ' . mysqli_stmt_error($stmt1));
-	}
-	if(!mysqli_stmt_bind_param($stmt1, 'ssiisssssssss',$row['name'],$row['cell'],$ridersLeft,$row['car'],$row['pickup'],$row['fromloc'],$row['dropoff'],$row['notes'],$row['clothes'],$row['ridedate'],$row['status'],$row['timetaken'],$row['loc'])){
-		die('Bind Failed: '. 'name: ' . $row['name'] . ' cell: ' . $row['cell']  . ' riders: ' . $ridersLeft . ' car: ' . $row['car'] . ' pickup: ' . $row['pickup'] . ' dropoff: ' . $row['dropoff'] . ' notes: ' . $row['notes'] . ' clothes: ' . $row['clothes'] . ' ridedate: ' . $row['ridedate'] . ' status: ' . $row['status'] . ' timetaken: ' . $row['timetaken'] . ' loc: ' . $row['loc'] . mysqli_stmt_error($stmt1));
+	if(!$stmt->bind_param('ssiiiissssssssi',
+	                      $row['name'],
+			      $row['cell'],
+			      $ridersLeft,
+			      $row['car'],
+			      $row['pickup'],
+			      $row['dropoff'],
+			      $row['notes'],
+			      $row['clothes'],
+			      $row['status'],
+			      $row['ridecreated'], 
+			      $row['rideassigned'], 
+			      $row['timepickedup'],
+			      $row['timecomplete'],
+			      $row['timecancelled'],
+			      $row['tpid'])){
+		die('Bind Failed: '. 'name: ' . $row['name'] . ' cell: ' .
+		    $row['cell']  . ' riders: ' . $ridersLeft . ' car: ' .
+		    $row['car'] . ' pickup: ' . $row['pickup'] .
+		    ' dropoff: ' . $row['dropoff'] . ' notes: ' .
+		    $row['notes'] . ' clothes: ' . $row['clothes'] .
+		    ' ridedate: ' . $row['ridedate'] . ' status: ' .
+		    $row['status'] . ' timetaken: ' . $row['timetaken'] .
+		    ' loc: ' . $row['loc'] . mysqli_stmt_error($stmt1));
 	}	
-	if(!mysqli_stmt_execute($stmt1)){
-		die('INSERT failed: ' .  print_r($row) . ' ' . $ridersLeft . ' '  . mysqli_stmt_error($stmt1));
+	if(!$stmt->execute()){
+		die('INSERT failed: ' .  print_r($row) . ' ' . $ridersLeft . ' '  . $stmt->error1);
 	}
-	mysqli_close($con1);
+	$con->close();
 	// this assigns the intended ride
-	$con2 = connect();
-	if(!($stmt2 = mysqli_stmt_init($con2))){
-		die('Init Failed: ' . mysqli_stmt_error($stmt2));
+	$con = connect();
+	if(!($stmt = $con->prepare($prepare['splitupdate']))){
+		die('Prep Failed2: ' . $stmt->error);
 	}
-	if(!mysqli_stmt_prepare($stmt2,$prepare['splitupdate'])){
-		die('Prep Failed2: ' . mysqli_stmt_error($stmt2));
+	if(!$tmt->bind_param('iisi', $car, $riders, $gtime, $num))
+		die('Bind Param Failed2: ' . $stmt->error);
+	if(!$stmt->execute()){
+		die('UPDATE failed: ' . $stmt->error);
 	}
-	mysqli_stmt_bind_param($stmt2, 'iisi', $car, $riders, $gtime, $num);
-	if(!mysqli_stmt_execute($stmt2)){
-		die('UPDATE failed: ' . mysqli_stmt_error($stmt2));
-	}
-	mysqli_close($con2);
+	$con->close();
 }
 
 //Edit the ride information
@@ -244,10 +257,10 @@ function rideEdit($num) {
 	if(!($stmt=mysqli_stmt_init($con))){
 		die('Init Failed: ' . mysqli_stmt_error($stmt));
 	}
-	if(!mysqli_stmt_prepare($stmt,$prepare['rideupdate'])){
+	if(!$stmt->prepare($prepare['rideupdate'])){
 		die('Prep Failed: ' . mysqli_stmt_error($stmt));
 	}
-	mysqli_stmt_bind_param($stmt, 'ississssssi', $_POST['car'],
+	$stmt->bind_param('ississssssi', $_POST['car'],
 								     $_POST["name"],
 								     $cellnumber,
 								     $_POST['riders'],
@@ -258,7 +271,7 @@ function rideEdit($num) {
 								     $_POST['clothes'],
 								     $_POST['notes'],
 								     $num);
-	if(!mysqli_stmt_execute($stmt)){
+	if(!$stmt->execute()){
 		die('UPDATE failed: ' . $_POST['name'] . mysqli_stmt_error($stmt));
 	}
 }
@@ -349,7 +362,7 @@ function getLocationID($value)
     loganddie($error);
     return;
   }
-  if(!mysqli_stmt_bind_param($stmt, 'sss', $value, $value, $value))
+  if(!$stmt->bind_param('sss', $value, $value, $value))
   {
     $error = 'getLocationID: Binding the parameters failed ' .  $stmt->errno . " " . $stmt->error;
     loganddie($error);
@@ -500,22 +513,21 @@ function rideUndo($num) {
 	if(!($stmt = mysqli_stmt_init($con))){
 		die('Init Failed: ' . mysqli_stmt_error($stmt));
 	}
-	if(!mysqli_stmt_prepare($stmt, $prepare['getride'])){
+	if(!$stmt->prepare( $prepare['getride'])){
 		die('Prep Failed: ' . mysqli_stmt_error($stmt));
 	}
 
 	//this opens the original ride
-	if(!mysqli_stmt_bind_param($stmt, 'i', $num)){
+	if(!$stmt->bind_param('i', $num)){
 		die('Bind Failed: ' . mysqli_stmt_error($stmt));
 	}
-	if(!mysqli_stmt_execute($stmt)){
+	if(!$stmt->execute()){
 		die('Exec Failed: ' . mysqli_stmt_error($stmt));
 	}
 	$rows = array();
-	mysqli_stmt_bind_result($stmt,
-				$rows['car']);
+	$stmt->bind_result($rows['car']);
 
-	while(mysqli_stmt_fetch($stmt)){
+	while($stmt->fetch()){
 		//$getundo  =  new  Ride($rows); 
    		
 		/*if ($getundo->getAtt('car')==0){
@@ -540,14 +552,14 @@ function rideUndo($num) {
 		die('Init Failed: ' . mysqli_stmt_error($stmt));
 	}
 
-	if(!mysqli_stmt_prepare($stmt, $prepare['rideundo'])){
+	if(!$stmt->prepare( $prepare['rideundo'])){
 		die('Prep Failed: ' . mysqli_stmt_error($stmt));
 	}
-	if(!mysqli_stmt_bind_param($stmt, 'si', $stat, $num)){
+	if(!$stmt->bind_param('si', $stat, $num)){
 		die('Bind Failed: ' . mysqli_stmt_error($stmt));
 	}
    	//$qry = "UPDATE rides SET status = '" . $stat . "' WHERE num='" . $num . "'";
-	if(!mysqli_stmt_execute($stmt)){
+	if(!$stmt->execute()){
 		die('INSERT failed: ' . mysqli_stmt_error($stmt));
 	}
 
@@ -561,7 +573,7 @@ function rideDone($num)
 {
   global $gtime,$prepare;
   $con = connect();
-  if(!($stmt = mysqli_stmt_prepare($stmt, $prepare['ridedone'])))
+  if(!($stmt = $stmt->prepare( $prepare['ridedone'])))
   {
     $error = 'rideDone: Prep Failed: ' . $con->error;
     loganddie($error);
@@ -592,10 +604,10 @@ function carUpdate() {
 	global $gtime,$gdate,$prepare;
 	$called = 'called';
 	$con = connect();
-	if(!mysqli_stmt_prepare($stmt,$prepare['carupdate'])){
+	if(!$stmt->prepare($prepare['carupdate'])){
 		die('Failed Prep: ' . mysqli_stmt_error($stmt));
 	}
-	mysqli_stmt_bind_param($stmt, 'isss', $_POST["carnum"], 
+	$stmt->bind_param('isss', $_POST["carnum"], 
 						  $called, 
 						  $gdate, 
 						  $gtime);
@@ -607,7 +619,7 @@ function carUpdate() {
     $dateofride."',
     '".date("YmdHis")."')";
 */
-	if(!mysqli_stmt_execute($stmt)){
+	if(!$stmt->execute()){
 		die('INSERT failed: ' . mysqli_stmt_error($stmt));
 	}
 }
@@ -620,10 +632,10 @@ function carHome() {
 	if(!($stmt=mysqli_stmt_init($con))){
 		die('Failed Init ' . mysqli_stmt_error($stmt));
 	}
-	if(!mysqli_stmt_prepare($stmt,$prepare['carupdate'])){
+	if(!$stmt->prepare($prepare['carupdate'])){
 		die('Failed Prep: ' . mysqli_stmt_error($stmt));
 	}
-	mysqli_stmt_bind_param($stmt, 'isss', $_POST["carnum"], 
+	$stmt->bind_param('isss', $_POST["carnum"], 
 						  $home, 
 						  $gdate, 
 						  $gtime);
@@ -635,7 +647,7 @@ function carHome() {
     $dateofride."',
     '".date("YmdHis")."')";
 */    
-	if(!mysqli_stmt_execute($stmt)){
+	if(!$stmt->execute()){
 		die('INSERT failed: ' . $_POST["carnum"] . ' ' . mysqli_stmt_error($stmt));
 	}
 }
@@ -659,19 +671,19 @@ function carBoxes(){
 		if(!($stmt=mysqli_stmt_init($con))){
 			die('Init1 Failed: ' . mysqli_stmt_error($stmt));
 		}
-		if(!mysqli_stmt_prepare($stmt, "SELECT timedone, pickup FROM rides WHERE ridedate=? AND car =? ORDER BY timedone")){
+		if(!$stmt->prepare( "SELECT timedone, pickup FROM rides WHERE ridedate=? AND car =? ORDER BY timedone")){
 			die('Prep1 Failed: ' . mysqli_stmt_error($stmt));
 		}
-		if(!mysqli_stmt_bind_param($stmt, 'si', $gdate, $i)){
+		if(!$stmt->bind_param('si', $gdate, $i)){
 			die('Bind1 Failed: ' . mysqli_stmt_error($stmt));
 		}
-		if(!mysqli_stmt_execute($stmt)){
+		if(!$stmt->execute()){
 			die('Exec1 Failed: ' . mysqli_stmt_error($stmt));
 		}
-		if(!mysqli_stmt_bind_result($stmt, $row['timedone'], $row['pickup'])){
+		if(!$stmt->bind_result($row['timedone'], $row['pickup'])){
 			die('Bind1 Res Failed: ' . mysqli_stmt_error($stmt));
 		}
-		while(mysqli_stmt_fetch($stmt)){
+		while($stmt->fetch()){
 			$carsDoneTime = date_parse($row['timedone']);
 		//	echo "\n Done Year Fetch: " . $carDoneTime['year']." \n";
 			$carsPickup = date_parse($row['pickup']);
@@ -690,19 +702,19 @@ function carBoxes(){
 		if(!($stmt=mysqli_stmt_init($con))){
 			die('Init2 Failed: ' . mysqli_stmt_error($stmt));
 		}
-		if(!mysqli_stmt_prepare($stmt, "SELECT timeassigned FROM rides WHERE ridedate=? AND car =? ORDER BY timeassigned")){
+		if(!$stmt->prepare( "SELECT timeassigned FROM rides WHERE ridedate=? AND car =? ORDER BY timeassigned")){
 			die('Prep2 Failed: ' . mysqli_stmt_error($stmt));
 		}
-		if(!mysqli_stmt_bind_param($stmt, 'si', $gdate, $i)){
+		if(!$stmt->bind_param('si', $gdate, $i)){
 			die('Bind2 Failed: ' . mysqli_stmt_error($stmt));
 		}
-		if(!mysqli_stmt_execute($stmt)){
+		if(!$stmt->execute()){
 			die('Exec2 Failed: ' . mysqli_stmt_error($stmt));
 		}
-		if(!mysqli_stmt_bind_result($stmt, $row['timeassigned'])){
+		if(!$stmt->bind_result($row['timeassigned'])){
 			die('Bind2 Res Failed: ' . mysqli_stmt_error($stmt));
 		}
-		while(mysqli_stmt_fetch($stmt)){
+		while($stmt->fetch()){
 			$carsRidingTime = date_parse($row['timeassigned']);
 		//	echo "\n Ride Year Fetch: ". $carRidingTime['year']." \n";
 		}
@@ -718,19 +730,19 @@ function carBoxes(){
 		if(!($stmt=mysqli_stmt_init($con))){
 			die('Init3 Failed: ' . mysqli_stmt_error($stmt));
 		}
-		if(!mysqli_stmt_prepare($stmt, "SELECT contacttime,reason FROM contacted WHERE ridedate=? AND carnum =? ORDER BY contacttime asc")){
+		if(!$stmt->prepare( "SELECT contacttime,reason FROM contacted WHERE ridedate=? AND carnum =? ORDER BY contacttime asc")){
 			die('Prep3 Failed: . ' . mysqli_stmt_error($stmt));
 		}
-		if(!mysqli_stmt_bind_param($stmt, 'si', $gdate, $i)){
+		if(!$stmt->bind_param('si', $gdate, $i)){
 			die('Bind3 Failed: ' . mysqli_stmt_error($stmt));
 		}
-		if(!mysqli_stmt_execute($stmt)){
+		if(!$stmt->execute()){
 			die('Exec3 Failed: ' . mysqli_stmt_error($stmt));
 		}
-		if(!mysqli_stmt_bind_result($stmt, $row['contacttime'],$row['reason'])){
+		if(!$stmt->bind_result($row['contacttime'],$row['reason'])){
 			die('Bind3 Res Failed: ' . mysqli_stmt_error($stmt));
 		}
-		while(mysqli_stmt_fetch($stmt)){
+		while($stmt->fetch()){
 			$carsContactTime = $row['contacttime'];
 			$carsContactTime = date_parse($carsContactTime);
 			$carsContactReason = $row['reason'];
@@ -995,7 +1007,7 @@ function getTableValuesRiding($ridedate)
   $stmt = $ret[0];
   $con = $ret[1];
   $row = $ret[2];
-  while(mysqli_stmt_fetch($stmt))
+  while($stmt->fetch())
   {
     $rowclass = rowColor($j);
     if ($_GET['pid']==$row['pid'])
@@ -1034,7 +1046,7 @@ function getTableValuesAssigned($ridedate)
   $stmt = $ret[0];
   $con = $ret[1];
   $row = $ret[2];
-  while(mysqli_stmt_fetch($stmt))
+  while($stmt->fetch())
   {
     $rowclass = rowColor($j);
     if ($_GET['pid']==$row['pid'])
@@ -1073,7 +1085,7 @@ function getTableValuesDone($ridedate)
   $stmt = $ret[0];
   $con = $ret[1];
   $row = $ret[2];
-  while(mysqli_stmt_fetch($stmt))
+  while($stmt->fetch())
   {
     $rowclass = rowColor($j);
     if ($_GET['pid']==$row['pid'])
