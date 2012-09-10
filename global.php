@@ -26,7 +26,7 @@ $prepare = array('ride' => "SELECT * FROM patron, ridetimes WHERE LEFT(ridetimes
 		 'getride' => "SELECT * FROM patron, ridetimes WHERE patron.pid = ? AND ridetimes.pid = patron.pid",
 		 'splitduplicate' => "INSERT INTO patron (name,cell,riders,car,pickup,dropoff,notes,clothes,ridedate,status,timetaken,loc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
 		 'splitupdate' => "UPDATE rides SET car =? , riders =?, status = 'riding', timeassigned =? WHERE num=?",
-		 'rideupdate' => "UPDATE rides SET car=?, name=?, cell=?, riders=?, pickup=?, fromloc=?, dropoff=?, loc=?, clothes=?, notes=? WHERE num=?",
+		 'rideupdate' => "UPDATE patron SET car=?, name=?, cell=?, riders=?, pickup=?, dropoff=?, clothes=?, notes=? WHERE pid=?",
 		 //'rideadd' => "INSERT INTO rides (name,cell,riders,pickup,fromloc,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
 		 'getlocationid' => "SELECT lid FROM locations WHERE value = ? OR name = ? OR code=?",
 		 'addlocation' => 'INSERT INTO locations (name, value) VALUES (?, ?)',

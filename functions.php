@@ -251,46 +251,67 @@ function rideSplit($num,$car,$riders) {
 
 //Edit the ride information
 function rideEdit($num) {
-	global $prepare;
-	$con = connect();
-	$cellnumber = $_POST["cellOne"].$_POST["cellTwo"].$_POST["cellThree"];
-	if(!($stmt=mysqli_stmt_init($con))){
-		die('Init Failed: ' . mysqli_stmt_error($stmt));
-	}
-	if(!$stmt->prepare($prepare['rideupdate'])){
-		die('Prep Failed: ' . mysqli_stmt_error($stmt));
-	}
-	$stmt->bind_param('ississssssi', $_POST['car'],
-								     $_POST["name"],
-								     $cellnumber,
-								     $_POST['riders'],
-								     $_POST['pickup'],
-								     $_POST['fromloc'],
-								     $_POST['dropoff'],
-								     $_POST['loc'],
-								     $_POST['clothes'],
-								     $_POST['notes'],
-								     $num);
-	if(!$stmt->execute()){
-		die('UPDATE failed: ' . $_POST['name'] . mysqli_stmt_error($stmt));
-	}
+  global $prepare;
+  $con = connect();
+  $name = $con->real_escape_string($_POST["name"]);
+  $cellnumber = $_POST["cellOne"].$_POST["cellTwo"].$_POST["cellThree"];
+  $cellnumber = $con->real_escape_string($cellnumber);
+  $riders = $con->real_escape_string($_POST["riders"]);
+  if(isset($_POST["fromloc"]))
+    $fromloc = $con->real_escape_string($_POST["fromloc"]);
+  $pickup = $con->real_escape_string($_POST["pickup"]);
+  if(isset($_POST["toloc"]))
+    $toloc = $con->real_escape_string($_POST["toloc"]);
+  $dropoff = $con->real_escape_string($_POST["dropoff"]);
+  $clothes = $con->real_escape_string($_POST["clothes"]);
+  $notes = $con->real_escape_string($_POST["notes"]);
+  $car = $con->real_escape_string($_POST['car']);
+  $waiting = 'waiting';
+
+  if(isset($fromloc) && !strcmp($fromloc, 'Other'))
+    $pickupid = getLocationID($pickup);
+  else
+    $pickupid = getLocationID($fromloc);
+  if(isset($toloc) && !strcmp($toloc, 'Other'))
+    $dropoffid = getLocationID($dropoff);
+  else
+    $dropoffid = getLocationID($toloc);
+
+  if(!($stmt=mysqli_stmt_init($con))){
+    die('Init Failed: ' . mysqli_stmt_error($stmt));
+  }
+  if(!$stmt->prepare($prepare['rideupdate'])){
+    die('Prep Failed: ' . mysqli_stmt_error($stmt));
+  }
+  $stmt->bind_param('ississssi', $car,
+                                 $name,
+				 $cellnumber,
+				 $riders,
+				 $pickupid,
+				 $dropoffid,
+				 $clothes,
+				 $notes,
+				 $num);
+  if(!$stmt->execute()){
+    die('UPDATE failed: ' . $name . ': ' . $stmt->error);
+  }
 }
 
 /* Add location to DB */
 function addLocation($value)
 { 
-  global $prepare, $log, $logfile;
-  $hash = hash('sha256', $value);
-  $hash = substr($hash, 0, 8);
-  $con = connect();
+global $prepare, $log, $logfile;
+$hash = hash('sha256', $value);
+$hash = substr($hash, 0, 8);
+$con = connect();
 
-  if(!($stmt = $con->prepare($prepare['addlocation'])))
-  {
-    $error = 'addLocation: Preparing the statement failed ' .  
-        $con->errno . ' ' . $con->error;
-    loganddie($error);
-    return;
-  }
+if(!($stmt = $con->prepare($prepare['addlocation'])))
+{
+$error = 'addLocation: Preparing the statement failed ' .  
+$con->errno . ' ' . $con->error;
+loganddie($error);
+return;
+}
   if(!$stmt->bind_param('ss', $value, $hash))
   {
     $error = 'addLocationID: Binding the parameters failed ' .  
@@ -341,7 +362,6 @@ function getLocation($lid)
   $con->close();
   return $row;
 }
-
 
 /* Get LocationID from DB
  * If location is not in DB, add it
