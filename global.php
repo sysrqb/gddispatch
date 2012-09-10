@@ -19,7 +19,7 @@ Define the array containing the prepared statement variables
 create prepared statements
 */
 $prepare = array('ride' => "SELECT * FROM patron, ridetimes WHERE LEFT(ridetimes.ridecreated, 10) = ? AND status = ? AND ridetimes.tid = patron.pid", 
-		 'location' => 'SELECT * FROM saferide.locations where lid = ?',
+		 'location' => 'SELECT * FROM ' . $db . '.locations where lid = ?',
 		 'totalcount' => "SELECT SUM(riders) as total FROM patron, ridetimes WHERE LEFT(ridetimes.ridecreated, 10) = ? AND status = ? AND ridetimes.tid = patron.pid",
 		 'setassign' => "UPDATE patron, ridetimes SET patron.car=?, patron.status='assigned', ridetimes.rideassigned = ? WHERE ridetimes.pid = ? AND patron.pid = ?",
 		 'setride' => "UPDATE patron SET car =? , status = 'riding' WHERE pid = ? AND UPDATE ridetimes SET timepickedup = ? WHERE pid = ?",
