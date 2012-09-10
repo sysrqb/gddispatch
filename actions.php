@@ -7,6 +7,10 @@ switch($_GET["action"]){ //retrieves case from respective page
 	rideCancel($_GET["num"]); //call the rideCancel function in function.php
     	header("location: ./done.php?num=".$_GET["num"]);//redirect page to done page
     	break;
+    case "riding": //if done was clicked on riding page
+    	rideRiding($_GET["num"]); //call rideDone in function.php file
+    	header("location: ./riding.php?num=".$_GET["num"]); //redirect page to done page
+    	break;
     case "done": //if done was clicked on riding page
     	rideDone($_GET["num"]); //call rideDone in function.php file
     	header("location: ./done.php?num=".$_GET["num"]); //redirect page to done page
@@ -24,7 +28,7 @@ switch($_GET["action"]){ //retrieves case from respective page
     	break;
     case "split": //if split was called on waiting page
     	rideSplit($_POST["num"],$_POST["car"],$_POST["riders"]);//call rideSplit function in function.php
-    	header("location: ./riding.php?num=".$_POST["num"]); //redirect to riding page for the first part of the split ride
+    	header("location: ./assigned.php?num=".$_POST["num"]); //redirect to riding page for the first part of the split ride
     	break;
     case "edit": //if edit was clicked on waiting or riding page
     	rideEdit($_POST["num"]); //call rideEdit function in function.php

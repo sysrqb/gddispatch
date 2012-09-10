@@ -24,8 +24,10 @@ $prepare = array('ride' => "SELECT * FROM patron, ridetimes WHERE LEFT(ridetimes
 		 'setassign' => "UPDATE patron, ridetimes SET patron.car=?, patron.status='assigned', ridetimes.rideassigned = ? WHERE ridetimes.pid = ? AND patron.pid = ?",
 		 'setride' => "UPDATE patron SET car =? , status = 'riding' WHERE pid = ? AND UPDATE ridetimes SET timepickedup = ? WHERE pid = ?",
 		 'getride' => "SELECT * FROM patron, ridetimes WHERE patron.pid = ? AND ridetimes.pid = patron.pid",
-		 'splitduplicate' => "INSERT INTO patron (name,cell,riders,car,pickup,dropoff,notes,clothes,ridedate,status,timetaken,loc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
-		 'splitupdate' => "UPDATE rides SET car =? , riders =?, status = 'riding', timeassigned =? WHERE num=?",
+		 'splitduplicate1' => "INSERT INTO patron (name, cell, riders, car, pickup, dropoff, notes, clothes, status) VALUES (?,?,?,?,?,?,?,?,?)",
+		 'splitduplicate2' => "INSERT INTO ridetimes (ridecreated, rideassigned, timepickedup, timecomplete, timecancelled, pid) VALUES(?,?,?,?,?,?)",
+		 'splitupdate1' => "UPDATE patron SET car =? , riders =?, status = 'assigned' WHERE pid=?",
+		 'splitupdate2' => "UPDATE ridetimes SET rideassigned =? WHERE pid=?",
 		 'rideupdate' => "UPDATE patron SET car=?, name=?, cell=?, riders=?, pickup=?, dropoff=?, clothes=?, notes=? WHERE pid=?",
 		 //'rideadd' => "INSERT INTO rides (name,cell,riders,pickup,fromloc,dropoff,loc,clothes,notes,status,ridedate,timetaken) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
 		 'getlocationid' => "SELECT lid FROM locations WHERE value = ? OR name = ? OR code=?",
@@ -34,7 +36,9 @@ $prepare = array('ride' => "SELECT * FROM patron, ridetimes WHERE LEFT(ridetimes
 		 'rideaddtime' => "INSERT INTO ridetimes (ridecreated, pid) VALUES (?, ?)",
 		 'setridetocancel' => "UPDATE patron SET status = ? , timedone = ?, WHERE pid = ? AND UPDATE ridetimes SET timecancelled = ?", 
 		 'rideundo' => "UPDATE patron SET status = ? where pid = ?",
-		 'ridedone' => "UPDATE patron SET status = ?, WHERE pid = ? AND UPDATE ridetimes SET timecomplete = ? WHERE pid = ?",
+		 'changeridestatus' => "UPDATE patron SET status=? WHERE pid = ?",
+		 'ridedonetime' => "UPDATE ridetimes SET timecomplete = ? WHERE pid = ?",
+		 'rideridingtime' => "UPDATE ridetimes SET timepickedup = ? WHERE pid = ?",
 		 'carupdate' => "INSERT INTO contacted (carnum,reason,ridedate,contacttime) VALUES (?,?,?,?)",
 		);
 

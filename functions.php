@@ -162,8 +162,12 @@ function rideSplit($num,$car,$riders) {
 	global $gtime,$prepare;
 	$con = connect();
 
+	$num = $con->real_escape_string($num);
+	$car = $con->real_escape_string($car);
+	$riders = $con->real_escape_string($riders);
+
 	if(!($stmt = $con->prepare($prepare['getride']))){
-		die('Prep failed: ' . $stmt->error);
+		die('Prep failed: ' . $con->error);
 	}
 
 	if(!$stmt->bind_param('i', $num)){
@@ -183,8 +187,8 @@ function rideSplit($num,$car,$riders) {
 				$row['dropoff'], 
 				$row['clothes'], 
 				$row['notes'], 
-				$row['ridedate'], 
 				$row['status'], 
+				$row['modified'], 
 				$row['tid'], 
 				$row['ridecreated'], 
 				$row['rideassigned'], 
@@ -198,16 +202,14 @@ function rideSplit($num,$car,$riders) {
     	
     		$ridersLeft = ($row['riders'] - $riders);
 	}		
-	$con->close();
-	
-	print_r($row);
+	$stmt->close();
+	//print_r($row);
 
 	// this creates the duplicate ride
-	$con = connect();
-	if(!($stmt = $con->prepare($prepare['splitduplicate']))){
-		die('Prep Failed1: ' . $stmt->error);
+	if(!($stmt = $con->prepare($prepare['splitduplicate1']))){
+		die('Prep Failed1: ' . $con->error);
 	}
-	if(!$stmt->bind_param('ssiiiissssssssi',
+	if(!$stmt->bind_param('ssiiiisss',
 	                      $row['name'],
 			      $row['cell'],
 			      $ridersLeft,
@@ -216,36 +218,68 @@ function rideSplit($num,$car,$riders) {
 			      $row['dropoff'],
 			      $row['notes'],
 			      $row['clothes'],
-			      $row['status'],
-			      $row['ridecreated'], 
-			      $row['rideassigned'], 
-			      $row['timepickedup'],
-			      $row['timecomplete'],
-			      $row['timecancelled'],
-			      $row['tpid'])){
-		die('Bind Failed: '. 'name: ' . $row['name'] . ' cell: ' .
+			      $row['status'])){
+		die('Bind Failed1: '. 'name: ' . $row['name'] . ' cell: ' .
 		    $row['cell']  . ' riders: ' . $ridersLeft . ' car: ' .
 		    $row['car'] . ' pickup: ' . $row['pickup'] .
 		    ' dropoff: ' . $row['dropoff'] . ' notes: ' .
 		    $row['notes'] . ' clothes: ' . $row['clothes'] .
 		    ' ridedate: ' . $row['ridedate'] . ' status: ' .
 		    $row['status'] . ' timetaken: ' . $row['timetaken'] .
-		    ' loc: ' . $row['loc'] . mysqli_stmt_error($stmt1));
+		    ' loc: ' . $row['loc'] . $stmt->error);
 	}	
 	if(!$stmt->execute()){
-		die('INSERT failed: ' .  print_r($row) . ' ' . $ridersLeft . ' '  . $stmt->error1);
+		die('INSERT failed1: ' .  print_r($row) . ' ' . $ridersLeft . ' '  . $stmt->error);
 	}
-	$con->close();
-	// this assigns the intended ride
-	$con = connect();
-	if(!($stmt = $con->prepare($prepare['splitupdate']))){
-		die('Prep Failed2: ' . $stmt->error);
+	$stmt->close();
+
+	if(!($stmt = $con->prepare($prepare['splitduplicate2']))){
+		die('Prep Failed2: ' . $con->error);
 	}
-	if(!$tmt->bind_param('iisi', $car, $riders, $gtime, $num))
-		die('Bind Param Failed2: ' . $stmt->error);
+	$newpid = $con->insert_id;
+	if(!$stmt->bind_param('sssssi',
+	                      $row['ridecreated'], 
+			      $row['rideassigned'], 
+			      $row['timepickedup'],
+			      $row['timecomplete'],
+			      $row['timecancelled'],
+			      $newpid)){
+		die('Bind Failed2: '. 'name: ' . $row['name'] . ' cell: ' .
+		    $row['cell']  . ' riders: ' . $ridersLeft . ' car: ' .
+		    $row['car'] . ' pickup: ' . $row['pickup'] .
+		    ' dropoff: ' . $row['dropoff'] . ' notes: ' .
+		    $row['notes'] . ' clothes: ' . $row['clothes'] .
+		    ' ridedate: ' . $row['ridedate'] . ' status: ' .
+		    $row['status'] . ' timetaken: ' . $row['timetaken'] .
+		    ' loc: ' . $row['loc'] . $stmt->error);
+	}	
 	if(!$stmt->execute()){
-		die('UPDATE failed: ' . $stmt->error);
+		die('INSERT failed2: ' .  print_r($row) . ' ' . $ridersLeft . ' '  . $stmt->error);
 	}
+	$stmt->close();
+
+
+	// this assigns the intended ride
+	if(!($stmt = $con->prepare($prepare['splitupdate1']))){
+		die('Prep Failed3: ' . $con->error);
+	}
+	if(!$stmt->bind_param('iii', $car, $riders, $num))
+		die('Bind Param Failed3: ' . $stmt->error);
+	if(!$stmt->execute()){
+		die('UPDATE failed3: ' . $stmt->error);
+	}
+	$stmt->close();
+
+	if(!($stmt = $con->prepare($prepare['splitupdate2']))){
+		die('Prep Failed4: ' . $con->error);
+	}
+	if(!$stmt->bind_param('si', $gtime, $num))
+		die('Bind Param Failed4: ' . $stmt->error);
+	if(!$stmt->execute()){
+		die('UPDATE failed4: ' . $stmt->error);
+	}
+	$stmt->close();
+
 	$con->close();
 }
 
@@ -587,20 +621,72 @@ function rideUndo($num) {
 	mysqli_close($con);
 
 }
-    
+
+/* Move ride from 'assigned' to 'Riding' */
+function rideRiding($num)
+{
+  global $gtime,$prepare;
+  $con = connect();
+  if(!($stmt = $con->prepare( $prepare['changeridestatus'])))
+  {
+    $error = 'rideRiding: Prep Failed: ' . $con->error;
+    loganddie($error);
+    return;
+  }
+  $status = 'riding';
+  if(!$stmt->bind_param('si', $status, $num))
+  {
+    $error = 'rideRiding: Bind Failed: ' . $stmt->error;
+    loganddie($error);
+    return;
+  }
+  //$qry = "UPDATE rides SET status = 'done', timedone = '".date("YmdHis")."' WHERE num='" . $num . "'";
+  if(!$stmt->execute())
+  {
+    $error = 'rideRiding: UPDATE failed: ' . $stmt->error;
+    loganddie($error);
+    return;
+  }
+  $stmt->close();
+
+  if(!($stmt = $con->prepare( $prepare['rideridingtime'])))
+  {
+    $error = 'rideRiding1: Prep Failed: ' . $con->error;
+    loganddie($error);
+    return;
+  }
+  $status = 'riding';
+  if(!$stmt->bind_param('si', $gtime, $num))
+  {
+    $error = 'rideRiding1: Bind Failed: ' . $stmt->error;
+    loganddie($error);
+    return;
+  }
+  //$qry = "UPDATE rides SET status = 'done', timedone = '".date("YmdHis")."' WHERE num='" . $num . "'";
+  if(!$stmt->execute())
+  {
+    $error = 'rideRiding1: UPDATE failed: ' . $stmt->error;
+    loganddie($error);
+    return;
+  }
+  $stmt->close();
+  $con->close();
+}
+
+
 /* Move ride from 'riding' to 'done' */
 function rideDone($num)
 {
   global $gtime,$prepare;
   $con = connect();
-  if(!($stmt = $stmt->prepare( $prepare['ridedone'])))
+  if(!($stmt = $con->prepare( $prepare['changeridestatus'])))
   {
     $error = 'rideDone: Prep Failed: ' . $con->error;
     loganddie($error);
     return;
   }
-  $done = 'done';
-  if(!$stmt->bind_param('ssi', $done, $gtime, $num))
+  $status = 'done';
+  if(!$stmt->bind_param('si', $status, $num))
   {
     $error = 'rideDone: Bind Failed: ' . $stmt->error;
     loganddie($error);
@@ -610,6 +696,27 @@ function rideDone($num)
   if(!$stmt->execute())
   {
     $error = 'rideDone: UPDATE failed: ' . $stmt->error;
+    loganddie($error);
+    return;
+  }
+  $stmt->close();
+
+  if(!($stmt = $con->prepare( $prepare['ridedonetime'])))
+  {
+    $error = 'rideDone1: Prep Failed: ' . $con->error;
+    loganddie($error);
+    return;
+  }
+  if(!$stmt->bind_param('si', $gtime, $num))
+  {
+    $error = 'rideDone1: Bind Failed: ' . $stmt->error;
+    loganddie($error);
+    return;
+  }
+  //$qry = "UPDATE rides SET status = 'done', timedone = '".date("YmdHis")."' WHERE num='" . $num . "'";
+  if(!$stmt->execute())
+  {
+    $error = 'rideDone1: UPDATE failed: ' . $stmt->error;
     loganddie($error);
     return;
   }
@@ -1078,6 +1185,7 @@ function getTableValuesAssigned($ridedate)
     $table .= '<div class="' . $status . '" id="' . $status . $row['pid'] . 
       '"></div>';
 
+    $table .= tblBtnRiding($row['pid']) . "\n";
     $table .= tblBtnDone($row['pid']) . "\n";
     $table .= tblBtnEdit($row['pid'], 'assigned') . "\n";
     $table .= tblBtnCancel($row['pid']) . "\n";

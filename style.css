@@ -98,8 +98,10 @@ table.program input.undo {background-color: #ffb0b6;}
 table.program input.undo:hover {color: white; background-color: #e10d13;}
 
 
+button.riding {background-color: white; }
 button.assign,
 button.done {background-color: #b7ffa0; }
+button.riding:hover {color: white; background-color: black}
 button.assign:hover,
 button.done:hover {color: #fff3fa; background-color: #00b802; }
 button.split {background-color: #fffcb1;}

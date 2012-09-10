@@ -8,6 +8,7 @@
 
     <table class="program">
       <tr>
+        <th>Riding</th>
         <th>Done</th>
         <th>Edit</th>
         <th>Cancel</th>

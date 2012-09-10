@@ -37,6 +37,16 @@ function tblBtnEdit($ride,$pg)
 }
 
 //Creates the Done button
+function tblBtnRiding($ride)
+{
+  $row = '<td class="btn">';
+  $row .= '<button class="riding" onClick="window.location=\'actions.php?num=' . 
+    $ride . '&action=riding\'">Riding</button>';
+  $row .= '</td>' . "\r";
+  return $row;
+}
+
+//Creates the Done button
 function tblBtnDone($ride)
 {
   $row = '<td class="btn">';
