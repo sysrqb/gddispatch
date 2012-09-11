@@ -91,7 +91,8 @@
 	}*/
 
 	?>
-	<?php echo getTableValuesRiding('');?>
+	<?php echo getTableValuesDone('');?>
+	<?php echo getTableValuesCancelled('');?>
 </table>
 
 <?php include("layout_bottom.php"); ?>

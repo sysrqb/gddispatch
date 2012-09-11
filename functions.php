@@ -120,6 +120,7 @@ function checkCount($type)
     loganddie($error);
     return 0;
   }
+  $stmt->fetch();
   $stmt->close();
   $con->close();
   return $total;
@@ -537,14 +538,14 @@ function rideCancel($num)
 {
   global $gtime,$prepare;
   $con = connect();
-  if(!($stmt = $con->prepare($prepare['ridedone'])))
+  if(!($stmt = $con->prepare($prepare['changeridestatus'])))
   {
     $error = 'rideCancel: Prep Failed: ' . $con->error;
     loganddie($error);
     return;
   }
   $status = 'cancelled';
-  if(!$stmt->bind_param('ssi', $status, $gtime, $num))
+  if(!$stmt->bind_param('si', $status, $num))
   {
     $error = 'rideCancel: Bind Failed: ' . $stmt->error;
     loganddie($error);
@@ -557,69 +558,91 @@ function rideCancel($num)
     return;
   }
   $stmt->close();
+
+  if(!($stmt = $con->prepare($prepare['ridecanceltime'])))
+  {
+    $error = 'rideCancel1: Prep Failed: ' . $con->error;
+    loganddie($error);
+    return;
+  }
+  if(!$stmt->bind_param('si', $gtime, $num))
+  {
+    $error = 'rideCancel1: Bind Failed: ' . $stmt->error;
+    loganddie($error);
+    return;
+  }
+  if(!$stmt->execute())
+  {
+    $error = 'rideCancel1: UPDATE failed: ' . $stmt->errno($stmt) . ' ' . $stmt->error;
+    loganddie($error);
+    return;
+  }
+  $stmt->close();
   $con->close();
 }
 
 /* Undo the last status change */
 function rideUndo($num) {
-	global $prepare;
-	$con = connect();
-	if(!($stmt = mysqli_stmt_init($con))){
-		die('Init Failed: ' . mysqli_stmt_error($stmt));
-	}
-	if(!$stmt->prepare( $prepare['getride'])){
-		die('Prep Failed: ' . mysqli_stmt_error($stmt));
-	}
+  global $prepare;
+  $con = connect();
+  
+  $num = $con->real_escape_string($num);
 
-	//this opens the original ride
-	if(!$stmt->bind_param('i', $num)){
-		die('Bind Failed: ' . mysqli_stmt_error($stmt));
-	}
-	if(!$stmt->execute()){
-		die('Exec Failed: ' . mysqli_stmt_error($stmt));
-	}
-	$rows = array();
-	$stmt->bind_result($rows['car']);
+  if(!($stmt = $con->prepare($prepare['getride']))){
+    die('rideUndo: Prep Failed: ' . $con->error);
+  }
 
-	while($stmt->fetch()){
-		//$getundo  =  new  Ride($rows); 
-   		
-		/*if ($getundo->getAtt('car')==0){
-			$stat="waiting";
-		}
-		else {
-			$stat="riding";
-		}*/
+  //this opens the original ride
+  if(!$stmt->bind_param('i', $num)){
+    die('rideUndo: Bind Failed: ' . $stmt->error);
+  }
+  if(!$stmt->execute()){
+    die('rideUndo: Exec Failed: ' . $stmt->error);
+  }
+  $rows = array();
+  $stmt->bind_result($row['pid'],
+                     $row['name'],
+		     $row['cell'],
+		     $row['riders'],
+		     $row['car'],
+		     $row['pickup'],
+		     $row['dropoff'],
+		     $row['clothes'],
+		     $row['notes'],
+		     $row['status'],
+		     $row['modified'],
+		     $row['tid'],
+		     $row['ridecreated'],
+		     $row['rideassigned'],
+		     $row['timepickedup'],
+		     $row['timecomplete'],
+		     $row['timecancelled'],
+		     $row['tpid']);
+  while($stmt->fetch()){
+    if($row['car'] == 0){
+      $stat='waiting';
+    } else if(!strcmp($row['timepickedup'], '')){
+      $stat = 'assigned';
+    } else {
+      $stat='riding';
+    }
+  }
+  $stmt->close();
 
-		if($rows['car']==0){
-			$stat='waiting';
-		}
-		else{
-			$stat='riding';
-		}
-	}
-	mysqli_close($con);
+  if(!($stmt = $con->prepare($prepare['changeridestatus']))){
+    die('rideUndo1: Prep Failed: ' . $con->error);
+  }
+  if(!$stmt->bind_param('si', $stat, $num)){
+    die('rideUndo1: Bind Failed: ' . $stmti->error);
+  }
+  //$qry = "UPDATE rides SET status = '" . $stat . "' WHERE num='" . $num . "'";
+  if(!$stmt->execute()){
+    die('rideUndo: INSERT failed: ' . $stmt->error);
+  }
 
-
-	$con = connect();
-	if(!($stmt = mysqli_stmt_init($con))){
-		die('Init Failed: ' . mysqli_stmt_error($stmt));
-	}
-
-	if(!$stmt->prepare( $prepare['rideundo'])){
-		die('Prep Failed: ' . mysqli_stmt_error($stmt));
-	}
-	if(!$stmt->bind_param('si', $stat, $num)){
-		die('Bind Failed: ' . mysqli_stmt_error($stmt));
-	}
-   	//$qry = "UPDATE rides SET status = '" . $stat . "' WHERE num='" . $num . "'";
-	if(!$stmt->execute()){
-		die('INSERT failed: ' . mysqli_stmt_error($stmt));
-	}
-
-	header("location: ./" . $stat . ".php?num=".$_POST["num"]);
-	mysqli_close($con);
-
+  $stmt->close();
+  $con->close();
+  header("location: ./" . $stat . ".php?num=" . $num);
 }
 
 /* Move ride from 'assigned' to 'Riding' */
@@ -1230,13 +1253,54 @@ function getTableValuesDone($ridedate)
     $table .= tblRideInfo($row['status']) . "\n";
     $table .= tblDoneCar($row['car']) . "\n";
     $table .= tblRideInfo($row['name']) . "\n";
-    $table .= tblLocationInfo($row['riders']) . "\n";
+    $table .= tblRideInfo($row['riders']) . "\n";
     $table .= tblLocationInfo($row['pickup']) . "\n";
-    $table .= tblRideInfo($row['dropoff']) . "\n";
+    $table .= tblLocationInfo($row['dropoff']) . "\n";
     $table .= tblCell($row['cell'], $row['status']) . "\n";
     $table .= tblTimeWait($row['ridecreated'], $row['rideassigned'],
                           $row['timecomplete'], $row['status']) . "\n";
     $table .= tblTimeRode($row['rideassigned'], $row['timecomplete'],
+                          $row['status']) . "\n";
+    $table .= tblHome($row['timecomplete'], $row['status']) . "\n";
+	
+    $table .= '</tr>'."\n";
+    $j++;
+  }
+  $stmt->close();
+  $con->close();
+  return $table;
+}
+
+function getTableValuesCancelled($ridedate)
+{
+  $ret = getTableValues($ridedate, 'cancelled');
+  $stmt = $ret[0];
+  $con = $ret[1];
+  $row = $ret[2];
+  while($stmt->fetch())
+  {
+    $rowclass = rowColor($j);
+    if ($_GET['pid']==$row['pid'])
+    {
+      $rowclass = $rowclass . " notice";
+    }
+
+    $table .= '<tr class="' . $rowclass . '" id="row' . $row['pid'] . '">';
+    $table .= '<div class="' . $status . '" id="' . $status . $row['pid'] . 
+      '"></div>';
+
+    $table .= tblBtnEdit($row['pid'], 'done') . "\n";
+    $table .= tblBtnUndo($row['pid']) . "\n";
+    $table .= tblRideInfo($row['status']) . "\n";
+    $table .= tblDoneCar($row['car']) . "\n";
+    $table .= tblRideInfo($row['name']) . "\n";
+    $table .= tblRideInfo($row['riders']) . "\n";
+    $table .= tblLocationInfo($row['pickup']) . "\n";
+    $table .= tblLocationInfo($row['dropoff']) . "\n";
+    $table .= tblCell($row['cell'], $row['status']) . "\n";
+    $table .= tblTimeWait($row['ridecreated'], $row['rideassigned'],
+                          $row['timecancelled'], $row['status']) . "\n";
+    $table .= tblTimeRode($row['timepickedup'], $row['timecomplete'],
                           $row['status']) . "\n";
     $table .= tblHome($row['timecomplete'], $row['status']) . "\n";
 	
