@@ -313,10 +313,10 @@ function rideEdit($num) {
     $dropoffid = getLocationID($toloc);
 
   if(!($stmt=mysqli_stmt_init($con))){
-    die('Init Failed: ' . mysqli_stmt_error($stmt));
+    loganddie('Init Failed: ' . mysqli_stmt_error($stmt));
   }
   if(!$stmt->prepare($prepare['rideupdate'])){
-    die('Prep Failed: ' . mysqli_stmt_error($stmt));
+    loganddie('Prep Failed: ' . mysqli_stmt_error($stmt));
   }
   $stmt->bind_param('ississssi', $car,
                                  $name,
@@ -328,25 +328,27 @@ function rideEdit($num) {
 				 $notes,
 				 $num);
   if(!$stmt->execute()){
-    die('UPDATE failed: ' . $name . ': ' . $stmt->error);
+    loganddie('UPDATE failed: ' . $name . ': ' . $stmt->error);
   }
 }
 
 /* Add location to DB */
 function addLocation($value)
 { 
-global $prepare, $log, $logfile;
-$hash = hash('sha256', $value);
-$hash = substr($hash, 0, 8);
-$con = connect();
+  global $prepare, $log, $logfile;
+  $hash = hash('sha256', $value);
+  $hash = substr($hash, 0, 8);
+  $con = connect();
+  
+  $value = $con->real_escape_string($value);
 
-if(!($stmt = $con->prepare($prepare['addlocation'])))
-{
-$error = 'addLocation: Preparing the statement failed ' .  
-$con->errno . ' ' . $con->error;
-loganddie($error);
-return;
-}
+  if(!($stmt = $con->prepare($prepare['addlocation'])))
+  {
+    $error = 'addLocation: Preparing the statement failed ' .  
+    $con->errno . ' ' . $con->error;
+    loganddie($error);
+    return;
+  }
   if(!$stmt->bind_param('ss', $value, $hash))
   {
     $error = 'addLocationID: Binding the parameters failed ' .  
@@ -589,15 +591,15 @@ function rideUndo($num) {
   $num = $con->real_escape_string($num);
 
   if(!($stmt = $con->prepare($prepare['getride']))){
-    die('rideUndo: Prep Failed: ' . $con->error);
+    loganddie('rideUndo: Prep Failed: ' . $con->error);
   }
 
   //this opens the original ride
   if(!$stmt->bind_param('i', $num)){
-    die('rideUndo: Bind Failed: ' . $stmt->error);
+    loganddie('rideUndo: Bind Failed: ' . $stmt->error);
   }
   if(!$stmt->execute()){
-    die('rideUndo: Exec Failed: ' . $stmt->error);
+    loganddie('rideUndo: Exec Failed: ' . $stmt->error);
   }
   $rows = array();
   $stmt->bind_result($row['pid'],
@@ -630,14 +632,14 @@ function rideUndo($num) {
   $stmt->close();
 
   if(!($stmt = $con->prepare($prepare['changeridestatus']))){
-    die('rideUndo1: Prep Failed: ' . $con->error);
+    loganddie('rideUndo1: Prep Failed: ' . $con->error);
   }
   if(!$stmt->bind_param('si', $stat, $num)){
-    die('rideUndo1: Bind Failed: ' . $stmti->error);
+    loganddie('rideUndo1: Bind Failed: ' . $stmti->error);
   }
   //$qry = "UPDATE rides SET status = '" . $stat . "' WHERE num='" . $num . "'";
   if(!$stmt->execute()){
-    die('rideUndo: INSERT failed: ' . $stmt->error);
+    loganddie('rideUndo: INSERT failed: ' . $stmt->error);
   }
 
   $stmt->close();
