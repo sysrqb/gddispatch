@@ -47,6 +47,8 @@ switch($_GET["action"]){ //retrieves case from respective page
     	header("location: ./cars.php");//redirects back to cars page
     	break;
    case "login": //Login using LDAP authentication
+	if(!isset($_POST) or !isset($_POST['user']) or !isset($_POST['pass']))
+	  header('location: ./incoming.php');
 	$go = adminLogin($_POST['user'],$_POST['pass']);//Pass function submitted username and password
 	header($go); //function will either direct to incoming.php or back to login page
 	break;
