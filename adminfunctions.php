@@ -531,4 +531,25 @@ function sort_by_value_dedupe(&$arr){
   }
 }
 
+function getActiveUsers(){
+  global $gdate;
+
+  $con = connect();
+  $query = 'SELECT * FROM activeusers WHERE TIMESTAMPDIFF(HOUR, NOW(), logintime) < 12 AND loggedin=1';
+
+  if(!($res = $con->query($query)))
+  {
+    $error = 'getActiveUsers: Query Failed: ' . $con->error;
+    loganddie($error);
+    return 0;
+  }
+  while($rows = $res->fetch_assoc()){
+    if(!is_array($rows))
+      return '';
+    $au = '';
+    $au .=  '<tr><td>' . $rows['username'] . '</td>';
+    $au .=  '<td>' . $rows['logintime'] . '</td></tr>';
+  }
+  return $au;
+}
 ?>

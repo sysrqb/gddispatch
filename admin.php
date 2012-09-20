@@ -222,11 +222,11 @@ Disable Local Admin Account:
 	</form>
 		
 </div>
-<div style="width:13%; float: left; border-style: double; border-width: medium;">
+<div style="width:12%; float: left; border-style: double; border-width: medium; background-color: #22D000; padding-left: 1em;">
 <p><a href="incoming.php">Logout</a></p>
 <p><a href="grantaccess.php">Grant Users Access</a></p>
+<p><a href="authedusers.php">Current Active Authenticated Users</a></p>
 </div>
 
 
 </body></html>
-
