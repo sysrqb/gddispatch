@@ -25,7 +25,7 @@
 Administrative Page
 </title>
 <script type="text/javascript">
-
+//<!--
 function getFieldValues(type, week){
   if (window.XMLHttpRequest)
   {// code for IE7+, Firefox, Chrome, Opera, Safari
@@ -57,6 +57,26 @@ function getFieldValues(type, week){
   xmlhttp.send();
 }
 
+function getFieldValuesDamage(type, week){
+  if (window.XMLHttpRequest)
+  {// code for IE7+, Firefox, Chrome, Opera, Safari
+    xmlhttp=new XMLHttpRequest();
+  }
+  xmlhttp.onreadystatechange=function()
+  {
+    if (xmlhttp.readyState==4 && xmlhttp.status==200)
+    {
+      document.getElementById("damage_numcar").innerHTML=xmlhttp.responseText;
+    }
+  }
+  if(type === 0)
+    xmlhttp.open("GET","adminact.php?action=carinfoupdate&week=" + week, true);
+  else if(type === 1)
+    xmlhttp.open("GET","adminact.php?action=carinfoadd&week=" + week, true);
+  else
+   return;
+  xmlhttp.send();
+}
 
 function adjustForCarOp_Week(){
   var re = /^\d{4}-\d{2}-\d{2}$/;
@@ -66,6 +86,28 @@ function adjustForCarOp_Week(){
     return;
   }
   var fields = document.getElementsByName("carinfoop");
+  if(fields.length == 2){
+    var oper = (fields[0].checked ? fields[0].value : fields[1].value);
+    if(oper == "update"){
+      /* XHR for available cars */
+      getFieldValues(0, weekfield.value);
+    }
+    else if(oper == "add"){
+      /* XHR for available cars */
+      getFieldValues(1, weekfield.value);
+    }
+  }
+}
+
+
+function adjustForCarDamage_Week(){
+  var re = /^\d{4}-\d{2}-\d{2}$/;
+  var weekfield = document.getElementById("damage_week");
+  if(!re.test(weekfield.value)){
+    alert("Please make sure you enter the week as YYYY-MM-DD, thanks!");
+    return;
+  }
+  var fields = document.getElementsByName("damage_op");
   if(fields.length == 2){
     var oper = (fields[0].checked ? fields[0].value : fields[1].value);
     if(oper == "update"){
@@ -113,11 +155,47 @@ function fillFormIfUpdate(){
                week.value + "&carnum=" + carnum.value, true);
   xmlhttp.send();
 }
+
+function fillFormIfUpdateDamage(){
+  if (window.XMLHttpRequest)
+  {// code for IE7+, Firefox, Chrome, Opera, Safari
+    xmlhttp=new XMLHttpRequest();
+  }
+  xmlhttp.onreadystatechange=function()
+  {
+    if (xmlhttp.readyState==4 && xmlhttp.status==200)
+    {
+      var response = xmlhttp.responseText;
+      var jsonresp = eval("(" + response + ")");
+      document.getElementById("carinfo_make").value = jsonresp.make;
+      document.getElementById("carinfo_model").value = jsonresp.model;
+      document.getElementById("carinfo_year").value = jsonresp.year;
+      document.getElementById("carinfo_color").value = jsonresp.color;
+      document.getElementById("carinfo_lp").value = jsonresp.licenseplate;
+      document.getElementById("carinfo_state").value = jsonresp.state;
+      document.getElementById("carinfo_cid").value = jsonresp.cid;
+
+
+      document.getElementById("carinfo_make").disabled = false;
+      document.getElementById("carinfo_model").disabled = false;
+      document.getElementById("carinfo_year").disabled = false;
+      document.getElementById("carinfo_color").disabled = false;
+      document.getElementById("carinfo_lp").disabled = false;
+      document.getElementById("carinfo_state").disabled = false;
+    }
+  }
+  var week = document.getElementById("carinfoweek");
+  var carnum = document.getElementById("carinfo_carnum");
+  xmlhttp.open("GET","adminact.php?action=carinfofields&week=" +
+               week.value + "&carnum=" + carnum.value, true);
+  xmlhttp.send();
+}
+//-->
 </script>
 </head>
-<body style='background-color:#E03E3E'>
+<body style='background-color:#00B000'>
 <h2><center> Car Administration </center></h2>
-<br><div style="width:25%; float:left; border-style: double; border-width: medium;">
+<br><div style="width:24%; float:left; border-style: double; border-width: medium; background-color: #22D000; padding: 1em 0 0 1em;">
 Current Number of Cars for 
     <?php 
       if(isset($info['week']))
@@ -179,15 +257,15 @@ Add/Update Car Info for car number:
 <p> <input type='submit' value='Add/Update' /></form></p>
 <br><br></div>
 
-<div style="width:35%; float:left; border-style: double; border-width: medium;">Add/Update Damage Report for Car: 
+<div style="width:34%; float:left; border-style: double; border-width: medium; background-color: #22D000; padding: 1em 0 0 1em;">
 <form action='adminact.php?action=damage' method='post'>
-	<select name='numcardamage'>
-		<?php
-		$num = 7;
-		for($i = 1; $i<$num+1;$i++){
-			echo "<option value='$i'>$i</option>";
-		} ?>
-	</select>
+  <input type="radio" name="damage_op" value="update">Update</input>
+  <input type="radio" name="damage_op" value="add" checked>Add</input>
+  <br />
+  <label for="damage_week">Week: <input type="text" name="week" id="damage_week" onBlur="adjustForCarDamage_Week()"></label>
+  <br />
+
+  <label for="damage_numcar">Add/Update Damage Report for Car: <select name='damage_numcar' onChange="fillFormIfUpdateDamage()"></select>
 <br>	Date Occurred/Discovered (YYYY-MM-DD): <input type='text' name='datediscovered'/>
 <br>	Type:
 		<select name='damagetype'>
@@ -203,7 +281,7 @@ Add/Update Car Info for car number:
 <br>
 <br>	<input type='submit' value='Add/Update' />
 </form></div>
-<div style="width:25%; float: left; border-style: double; border-width: medium;">
+<div style="width:24%; float: left; border-style: double; border-width: medium; background-color: #22D000; padding: 1em 0 0 1em;">
 	<form action='adminact.php?action=authentication' method='post'>
 Disable Local Admin Account: 
 		<input type='checkbox' name='localadmin' value='FALSE' />
@@ -213,7 +291,7 @@ Disable Local Admin Account:
 <br>		MySQL Password <input type='password' name='mysqlpass' />
 <br>		<input type='submit' value='Update' />
 	</form>	
-	<form action='adminact.php?action=init' method='post'>
+	<form action='adminact.php?action=dbinit' method='post'>
 		Initialize Database: <input type='submit' value='Initialize' />
 	</form>
 	<form action='adminact.php?action=checkcon' method='post' >

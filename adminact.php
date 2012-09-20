@@ -35,6 +35,7 @@ if(isset($_GET) && isset($_GET['action']))
       break;
     case "dbinit":
       init();
+      header('location: ./admin.php');
       break;
     case "carinfo":
       if(isset($_POST['carinfoop']) && isset($_POST['week']) && 
