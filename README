@@ -1,0 +1,122 @@
+Dispatch - A web application to facilitate tracking the status of rides
+
+INSTALLATION
+
+  Dependencies:
+    PHP 5.4.5 with mysqli
+
+  This has only been tested with Lighttpd and Apache, but should work with
+  Nginx without much difficulty.
+
+  Apache:
+    Place repo someplace useful. We placed it in /var/www, but the path
+    doesn't matter as long as you make the proper modifications in the
+    configuration file.
+
+    In the Apache's config file, either add another VirtualHost if the server
+    hosts multiple domains or adjust the Directives if you can:
+    
+      <Directory /var/www/>
+        Options FollowSymLinks
+        AllowOverride None
+        Order allow,deny
+        allow from all
+      </Directory>
+
+    Everything will be served from this directory, so it's a simple setup.
+
+
+  Lighttpy:
+    Where ever the server has its document root set, i.e.:
+    
+        server.document-root = var.basedir + "/htdocs/dispatch"
+    
+    Place the repository there.
+
+
+
+  Prerequisites to Use:
+    Edit or create if it doesn't exist cred.local.php, it should look like:
+    
+      <?php
+        $host = 'xxx.xxx.xxx.xxx';
+        $username = 'dbuser';
+        $password = 'dbuserpasswd';
+        $db = 'dbname';
+	$port = 3306;
+        $CASserver = 'https://login.example.com';
+        $CASValidateServer = "https://login.example.com/";
+        $LocalAuthValidator = 'http://xxx.xxx.xxx.xxx/auth.php';
+
+        /* Setting this to true will allow easy access to the administration
+	   screen
+	 */
+        $localadmin = TRUE;
+      ?>
+
+    - $host: IP Address of server hosting MySQL databas
+    - $username: Username of user that has access to database and tables
+    - $password: Users password (as above)
+    - $db: Name of database
+    - $port: Port the SQL Server listens on
+    - $CASserver: CAS login URI 
+    - $CASValidateServer: CAS validater URI
+    - $LocalAuthValidator: URI to which successfully authenticated users
+                           should be redirected
+
+
+    When localadmin is set to TRUE, the administration panel is accessable
+    using
+
+      username: admin
+      password: 1234
+
+    This account should be disabled once CAS authentication is configured.
+    To disable simply set
+
+      $localadmin = FALSE
+
+    in cred.local.php
+
+
+  Setup:
+    Once the necessary variables have been defined, run a web browser and go
+    to the the URI http://example.com/login.php, but replace example.com
+    with either the domain name or IP Address of the webserver hosting this
+    webapp. If everything was set up correctly, the page should display a
+    a login form prompting for a username and password.
+
+    Assuming it is working, use the username admin and the password 1234
+    to gain access to the admin panel. You should now see a page with the
+    title Car Administration.
+
+    We now need to create and initialize the database. Within the third box
+    from the left, about halfway down, there is a line that says
+    Initialie Database, click Initialize. On success the environment is ready
+    for use.
+
+
+LICENSING:
+
+Phoneroom
+Copyright (C) 2010 CARPOOL
+All Rights Reserved
+
+Dispatch
+Copyright (C) 2012  Matthew Finkel <Matthew.Finkel@gmail.com>
+Copyright (C) 2012  GUARD Dogs
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+The full license text is included in COPYING/COPYING
