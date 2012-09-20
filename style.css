@@ -129,7 +129,8 @@ a, a:visited, a:hover {text-decoration:none; color:#121212;}
 .navbar ul li.cars {float:right; position:relative; margin: 0 0 0 4px; display:block; height:42px; padding: 0 5px 0 5px; text-decoration:none; font-weight:bold; color: rgb(50,50,50);}
 
 .footer {float:left; width:961px; height:25px; padding:0; margin:10px 0 0 0; background:rgb(70,250,70); color:rgb(75,75,75); font-size:120%;}
-.footer h6 {font-size:75%;padding:5px 0 0 0;color:#111111;}
+.footer-copy {float:left; width:961px; height:45px; padding:0; margin:10px 0 0 0; background:rgb(70,250,70); color:rgb(75,75,75); font-size:120%;}
+.footer h6, .footer-copy h6 {font-size:75%;padding:5px 0 0 0;color:#111111;}
 .footer a {text-decoration: underline;}
 .footer a:hover {color:#666666;}
 
