@@ -1,9 +1,9 @@
 <?php
 
 function connect(){
-  global $host, $username, $password, $db, $prepare, $log, $logfile;
+  global $host, $username, $password, $db, $port, $prepare, $log, $logfile;
 
-  $con = new mysqli($host,$username,$password, $db);
+  $con = new mysqli($host,$username,$password, $db, $port);
   if($con->connect_error)
   {
     $error = 'Connection Error (' . $con->connect_errno . ') ' . $con->connect_error;
@@ -15,9 +15,9 @@ function connect(){
 }
    
 function initconnect(){
-  global $host, $username, $password, $db, $prepare, $log, $logfile;
+  global $host, $username, $password, $db, $port, $prepare, $log, $logfile;
 
-  $con = new mysqli($host,$username,$password);
+  $con = new mysqli($host,$username,$password, '', $port);
   if($con->connect_error)
   {
     $error = 'Connection Error (' . $con->connect_errno . ') ' . $con->connect_error;
